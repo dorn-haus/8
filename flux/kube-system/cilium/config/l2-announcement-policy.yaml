@@ -13,4 +13,4 @@ spec:
       operator: DoesNotExist
   serviceSelector:
     matchLabels:
-      app.kubernetes.io/instance: nginx-ingress
+      app.kubernetes.io/instance: ingress-nginx
