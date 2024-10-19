@@ -7,7 +7,7 @@ spec:
   interval: 30m
   chart:
     spec:
-      chart: ingress-nginx
+      chart: cilium
       version: 1.16.3
       sourceRef:
         kind: HelmRepository
