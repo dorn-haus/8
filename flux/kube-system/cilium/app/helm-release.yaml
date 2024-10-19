@@ -14,8 +14,6 @@ spec:
         name: cilium
         namespace: flux-system
       interval: 12h
-      valuesFiles:
-      - values.yaml
   install:
     remediation:
       retries: 3
@@ -23,3 +21,6 @@ spec:
     cleanupOnFail: true
     remediation:
       retries: 3
+  valuesFrom:
+  - kind: ConfigMap
+    name: cilium-values
