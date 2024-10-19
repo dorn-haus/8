@@ -1,3 +1,4 @@
+---
 autoDirectNodeRoutes: true
 cgroup:
   automount:
