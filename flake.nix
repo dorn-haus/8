@@ -30,6 +30,7 @@
     self,
     flake-parts,
     devenv-root,
+    nixpkgs,
     nixpkgs-devenv,
     ...
   }:
@@ -60,7 +61,10 @@
 
         talhelper = inputs'.talhelper.packages.default;
 
-        params = {pkgs = pkgs // {inherit talhelper;};};
+        params = {
+          inherit self;
+          pkgs = pkgs // {inherit talhelper;};
+        };
         inventory-yaml = import ./ansible/inventory.nix params;
         talconfig-yaml = import ./talos/talconfig.nix params;
 
@@ -121,6 +125,12 @@
           '';
         };
       };
-      flake = {inherit flakeModules;};
+      flake = {
+        inherit flakeModules;
+        lib = import ./lib {
+          inherit self;
+          inherit (nixpkgs) lib;
+        };
+      };
     });
 }

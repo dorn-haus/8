@@ -1,6 +1,11 @@
-inputs @ {pkgs, ...}: let
+{
+  self,
+  pkgs,
+  ...
+}: let
   inherit (builtins) listToAttrs map;
-  cluster = import ../cluster inputs;
+  inherit (self.lib) cluster;
+
   clusterGroup = group:
     listToAttrs (map (value @ {
         hostname,

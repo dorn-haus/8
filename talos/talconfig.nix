@@ -1,7 +1,11 @@
-inputs @ {pkgs, ...}: let
+inputs @ {
+  pkgs,
+  self,
+  ...
+}: let
   inherit (pkgs.lib.generators) toYAML;
+  inherit (self.lib) cluster;
 
-  cluster = import ../cluster inputs;
   writeYAML = (pkgs.formats.yaml {}).generate;
 
   first = builtins.head cluster.nodes.cplane;

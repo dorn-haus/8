@@ -1,5 +1,9 @@
-inputs @ {pkgs, ...}: let
-  cluster = import ../../cluster inputs;
+{
+  pkgs,
+  self,
+  ...
+}: let
+  inherit (self.lib) cluster;
 
   writeYAML = (pkgs.formats.yaml {}).generate;
 in

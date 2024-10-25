@@ -1,9 +1,13 @@
-{pkgs, ...}: prefix: mac:
-with pkgs.lib; let
-  hexb = (import ./hex.nix {inherit pkgs;}).byte;
+{
+  lib,
+  self,
+  ...
+}: prefix: mac: let
+  inherit (lib) lists strings mod;
+  inherit (self.lib) hex;
 
   # Parses MAC address bytes from hexadecimal.
-  macb = map (byte: hexb.parse byte) (strings.splitString ":" mac);
+  macb = map (byte: hex.byte.parse byte) (strings.splitString ":" mac);
 
   # Inverts the 7th bit of the first byte to indicate the globally unique/local bit.
   macb0 = builtins.head macb;
@@ -15,5 +19,5 @@ with pkgs.lib; let
 
   # Returns a single byte of the modified MAC address.
   macAt = byte: builtins.head (lists.drop byte eui64mac);
-  hexAt = byte: hexb.fmt (macAt byte);
+  hexAt = byte: hex.byte.fmt (macAt byte);
 in "${prefix}${hexAt 0}${hexAt 1}:${hexAt 2}ff:fe${hexAt 3}:${hexAt 4}${hexAt 5}"

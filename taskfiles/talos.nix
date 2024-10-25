@@ -1,4 +1,4 @@
-{withSystem, ...}: {...}: {
+{withSystem, ...}: {self, ...}: {
   perSystem = ctx @ {
     system,
     pkgs,
@@ -116,7 +116,7 @@
             install-cilium = {
               desc = "Bootstrap Talos: #4 - install cilium";
               cmds = let
-                helmfile-yaml = import ../talos/apps/helmfile.nix ctx;
+                helmfile-yaml = import ../talos/apps/helmfile.nix (ctx // {inherit self;});
               in [
                 "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
                 "${cilium} status --wait"
@@ -128,7 +128,7 @@
               # TODO: Try to get the Flux token from Bitwarden.
               desc = "Bootstrap Talos: #5 - install flux";
               cmd = let
-                cluster = import ../cluster ctx;
+                inherit (self.lib) cluster;
               in ''
                 ${flux} bootstrap github \
                   --owner=${cluster.github.owner} \
