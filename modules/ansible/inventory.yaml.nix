@@ -1,8 +1,4 @@
-{
-  self,
-  pkgs,
-  ...
-}: let
+{self, ...}: let
   inherit (builtins) listToAttrs map;
   inherit (self.lib) cluster;
 
@@ -20,14 +16,12 @@
           };
       })
       group);
-  writeYAML = (pkgs.formats.yaml {}).generate;
-in
-  writeYAML "inventory.yaml" {
-    alpine = {
-      hosts = clusterGroup cluster.nodes.alpine;
-      vars = {
-        inherit (cluster) network;
-        cluster = {inherit (cluster) domain name;};
-      };
+in {
+  alpine = {
+    hosts = clusterGroup cluster.nodes.alpine;
+    vars = {
+      inherit (cluster) network;
+      cluster = {inherit (cluster) domain name;};
     };
-  }
+  };
+}

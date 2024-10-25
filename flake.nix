@@ -40,7 +40,10 @@
       ...
     }: let
       inherit (flake-parts-lib) importApply;
-      flakeModules.task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
+      flakeModules = {
+        ansible = importApply ./modules/ansible ctx;
+        task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
+      };
     in {
       systems = ["x86_64-linux"];
       imports = [inputs.devenv.flakeModule] ++ builtins.attrValues flakeModules;
@@ -65,7 +68,6 @@
         };
         params.writeYAML = src: (pkgs.formats.yaml {}).generate "${baseNameOf src}.yaml" (import src params);
 
-        inventory-yaml = import ./ansible/inventory.nix params;
         talconfig-yaml = writeYAML ./talos/talconfig.yaml.nix;
       in {
         devenv.shells.default = {
@@ -98,7 +100,6 @@
           ];
 
           env = {
-            ANSIBLE_INVENTORY = inventory-yaml;
             TALCONFIG = talconfig-yaml;
             TALSECRET = ./talos/talsecret.sops.yaml;
           };
