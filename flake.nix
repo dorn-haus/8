@@ -57,16 +57,22 @@
         system,
         ...
       }: let
+        inherit (params) writeYAML;
+
         pkgs-devenv = import nixpkgs-devenv {inherit system;};
 
         talhelper = inputs'.talhelper.packages.default;
 
         params = {
           inherit self;
+
           pkgs = pkgs // {inherit talhelper;};
+          toYAML = pkgs.lib.generators.toYAML {};
         };
+        params.writeYAML = src: (pkgs.formats.yaml {}).generate "${baseNameOf src}.yaml" (import src params);
+
         inventory-yaml = import ./ansible/inventory.nix params;
-        talconfig-yaml = import ./talos/talconfig.nix params;
+        talconfig-yaml = writeYAML ./talos/talconfig.yaml.nix;
 
         task-wrapper = pkgs.writeShellScriptBin "task" ''
           ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${self'.packages.taskfile-yaml} $@
