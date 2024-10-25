@@ -71,7 +71,7 @@
         talconfig-yaml = writeYAML ./talos/talconfig.yaml.nix;
       in {
         devenv.shells.default = {
-          name = "homelab";
+          name = self.lib.github.repo;
           devenv.root = let
             devenvRootFileContent = builtins.readFile devenv-root.outPath;
           in
