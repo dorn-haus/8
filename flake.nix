@@ -40,11 +40,7 @@
       ...
     }: let
       inherit (flake-parts-lib) importApply;
-      flakeModules = {
-        taskfiles = importApply ./taskfiles ctx;
-        taskfiles-sops = importApply ./taskfiles/sops.nix ctx;
-        taskfiles-talos = importApply ./taskfiles/talos.nix ctx;
-      };
+      flakeModules.task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
     in {
       systems = ["x86_64-linux"];
       imports = [inputs.devenv.flakeModule] ++ builtins.attrValues flakeModules;
@@ -59,8 +55,6 @@
       }: let
         inherit (params) writeYAML;
 
-        pkgs-devenv = import nixpkgs-devenv {inherit system;};
-
         talhelper = inputs'.talhelper.packages.default;
 
         params = {
@@ -73,17 +67,7 @@
 
         inventory-yaml = import ./ansible/inventory.nix params;
         talconfig-yaml = writeYAML ./talos/talconfig.yaml.nix;
-
-        task-wrapper = pkgs.writeShellScriptBin "task" ''
-          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${self'.packages.taskfile-yaml} $@
-        '';
       in {
-        packages.default = task-wrapper;
-        apps.default = {
-          type = "app";
-          program = pkgs.lib.getExe task-wrapper;
-        };
-
         devenv.shells.default = {
           name = "homelab";
           devenv.root = let
@@ -91,13 +75,7 @@
           in
             pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
 
-          imports = [
-            # https://devenv.sh/guides/using-with-flake-parts/#import-a-devenv-module
-          ];
-
           packages = with pkgs; [
-            task-wrapper
-
             age
             alejandra
             ansible
