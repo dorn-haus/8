@@ -1,5 +1,5 @@
 {
-  description = "Dornhaus home lab";
+  description = "Dornhaus Homelab";
 
   inputs = {
     devenv-root = {
@@ -33,9 +33,20 @@
     nixpkgs-devenv,
     ...
   }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
-      imports = [inputs.devenv.flakeModule];
+    flake-parts.lib.mkFlake {inherit inputs;} (ctx @ {
+      withSystem,
+      flake-parts-lib,
+      ...
+    }: let
+      inherit (flake-parts-lib) importApply;
+      flakeModules = {
+        taskfiles = importApply ./taskfiles ctx;
+        taskfiles-sops = importApply ./taskfiles/sops.nix ctx;
+        taskfiles-talos = importApply ./taskfiles/talos.nix ctx;
+      };
+    in {
       systems = ["x86_64-linux"];
+      imports = [inputs.devenv.flakeModule] ++ builtins.attrValues flakeModules;
 
       perSystem = {
         config,
@@ -52,10 +63,9 @@
         params = {pkgs = pkgs // {inherit talhelper;};};
         inventory-yaml = import ./ansible/inventory.nix params;
         talconfig-yaml = import ./talos/talconfig.nix params;
-        taskfile-yaml = import ./taskfile.nix params;
 
         task-wrapper = pkgs.writeShellScriptBin "task" ''
-          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
+          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${self'.packages.taskfile-yaml} $@
         '';
       in {
         packages.default = task-wrapper;
@@ -111,5 +121,6 @@
           '';
         };
       };
-    };
+      flake = {inherit flakeModules;};
+    });
 }
