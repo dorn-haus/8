@@ -6,11 +6,7 @@ inputs @ {lib, ...}: {
   yaml = {
     format = lib.generators.toYAML {};
 
-    write = params @ {
-      pkgs,
-      src,
-      ...
-    }:
+    write = src: params @ {pkgs, ...}:
       (pkgs.formats.yaml {}).generate "${baseNameOf src}.yaml" (import src (params // inputs));
   };
 }

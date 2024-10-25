@@ -10,10 +10,7 @@
     ...
   }: let
     pkgs-devenv = import nixpkgs-devenv {inherit system;};
-    taskfile-yaml = self.lib.yaml.write {
-      inherit inputs' pkgs;
-      src = ./taskfile.yaml.nix;
-    };
+    taskfile-yaml = self.lib.yaml.write ./taskfile.yaml.nix {inherit inputs' pkgs;};
     task-wrapper = pkgs.writeShellScriptBin "task" ''
       ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
     '';

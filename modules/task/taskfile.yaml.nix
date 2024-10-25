@@ -12,7 +12,7 @@
   };
 
   includes = let
-    include = src: self.lib.yaml.write {inherit inputs' pkgs src;};
+    include = src: self.lib.yaml.write src {inherit inputs' pkgs;};
   in {
     sops = include ./taskfiles/sops.yaml.nix;
     talos = include ./taskfiles/talos.yaml.nix;

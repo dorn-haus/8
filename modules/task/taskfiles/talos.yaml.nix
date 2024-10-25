@@ -108,10 +108,7 @@ in {
     install-cilium = {
       desc = "Bootstrap Talos: #4 - install cilium";
       cmds = let
-        helmfile-yaml = self.lib.yaml.write {
-          inherit pkgs;
-          src = ../../../talos/apps/helmfile.yaml.nix;
-        };
+        helmfile-yaml = self.lib.yaml.write ../../../talos/apps/helmfile.yaml.nix {inherit pkgs;};
       in [
         "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
         "${cilium} status --wait"
