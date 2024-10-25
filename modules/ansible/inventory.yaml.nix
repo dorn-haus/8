@@ -9,11 +9,7 @@
         ...
       }: {
         name = hostname;
-        value =
-          value
-          // {
-            ansible_host = ipv4;
-          };
+        value = value // {ansible_host = ipv4;};
       })
       group);
 in {
