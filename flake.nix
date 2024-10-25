@@ -42,6 +42,7 @@
       inherit (flake-parts-lib) importApply;
       flakeModules = {
         ansible = importApply ./modules/ansible ctx;
+        talhelper = importApply ./modules/talhelper ctx;
         task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
       };
     in {
@@ -49,26 +50,11 @@
       imports = [inputs.devenv.flakeModule] ++ builtins.attrValues flakeModules;
 
       perSystem = {
-        config,
-        self',
         inputs',
         pkgs,
-        system,
         ...
       }: let
-        inherit (params) writeYAML;
-
         talhelper = inputs'.talhelper.packages.default;
-
-        params = {
-          inherit self;
-
-          pkgs = pkgs // {inherit talhelper;};
-          toYAML = pkgs.lib.generators.toYAML {};
-        };
-        params.writeYAML = src: (pkgs.formats.yaml {}).generate "${baseNameOf src}.yaml" (import src params);
-
-        talconfig-yaml = writeYAML ./talos/talconfig.yaml.nix;
       in {
         devenv.shells.default = {
           name = self.lib.github.repo;
@@ -99,10 +85,7 @@
             })
           ];
 
-          env = {
-            TALCONFIG = talconfig-yaml;
-            TALSECRET = ./talos/talsecret.sops.yaml;
-          };
+          env = {};
 
           enterShell = ''
             export KUBECONFIG=$DEVENV_STATE/talos/kubeconfig

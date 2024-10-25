@@ -70,7 +70,7 @@ in {
     genconfig = {
       desc = "Bootstrap Talos: #1 - generate configs";
       cmd = ''
-        ${rm} -rf ${state}
+        ${rm} -rf ${state}/*.yaml
         ${talhelper} genconfig --config-file="$TALCONFIG" --secret-file="$TALSECRET" --out-dir="${state}"
       '';
     };
@@ -108,7 +108,7 @@ in {
     install-cilium = {
       desc = "Bootstrap Talos: #4 - install cilium";
       cmds = let
-        helmfile-yaml = self.lib.yaml.write ../../../talos/apps/helmfile.yaml.nix {inherit pkgs;};
+        helmfile-yaml = self.lib.yaml.write ../../../talos/bootstrap/helmfile.yaml.nix {inherit pkgs;};
       in [
         "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
         "${cilium} status --wait"
@@ -117,6 +117,7 @@ in {
     };
 
     install-flux = {
+      # TODO: Set up an OCI repository.
       # TODO: Try to get the Flux token from Bitwarden.
       desc = "Bootstrap Talos: #5 - install flux";
       cmd = let

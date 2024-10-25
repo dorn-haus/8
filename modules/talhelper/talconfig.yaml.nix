@@ -1,11 +1,12 @@
 {
   self,
-  toYAML,
+  pkgs,
   ...
 }: let
   inherit (self.lib) cluster;
 
   first = builtins.head cluster.nodes.cplane;
+  toYAML = pkgs.lib.generators.toYAML {};
 in {
   clusterName = cluster.name;
   talosVersion = "v1.8.1";
