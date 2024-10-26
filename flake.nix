@@ -56,6 +56,19 @@
       }: let
         talhelper = inputs'.talhelper.packages.default;
       in {
+        # The default package.
+        # Effectively an OCI image containing the rendered Kubernetes manifests.
+        packages.default = pkgs.dockerTools.buildImage {
+          name = self.lib.cluster.name;
+          tag = "latest";
+          copyToRoot = pkgs.buildEnv {
+            name = "manifests";
+            paths = [./flux];
+          };
+        };
+
+        # The devenv shell.
+        # Contains tooling and modules to effectively manage the cluster.
         devenv.shells.default = {
           name = self.lib.github.repo;
           devenv.root = let
@@ -93,6 +106,9 @@
           '';
         };
       };
+
+      # Other flake contents.
+      # Contains a library that is re-used by the modules.
       flake = {
         inherit flakeModules;
         lib = import ./lib {
