@@ -9,11 +9,10 @@ creation_rules:
   key_groups: *keys
 - path_regex: talos/.*\.sops\.yaml
   key_groups: *keys
-- path_regex: k8s/.*\.sops\.yaml
+- path_regex: flux/.*\.sops\.yaml
   encrypted_regex: "^stringData$"
   key_groups: *keys
-- path_regex: jh/.*\.sops\.conf
-  encrypted_regex: "^PrivateKey$"
+- path_regex: bootstrap/switches/.*\.cfg
   key_groups: *keys
 
 stores:
