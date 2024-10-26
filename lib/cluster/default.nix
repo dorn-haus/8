@@ -1,4 +1,4 @@
-inputs: {
+inputs @ {...}: {
   name = "locker";
   domain = "dorn.haus";
 

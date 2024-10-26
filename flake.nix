@@ -1,5 +1,5 @@
 {
-  description = "Dornhaus home lab";
+  description = "Dornhaus Homelab";
 
   inputs = {
     devenv-root = {
@@ -30,54 +30,53 @@
     self,
     flake-parts,
     devenv-root,
+    nixpkgs,
     nixpkgs-devenv,
     ...
   }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
-      imports = [inputs.devenv.flakeModule];
+    flake-parts.lib.mkFlake {inherit inputs;} (ctx @ {
+      withSystem,
+      flake-parts-lib,
+      ...
+    }: let
+      inherit (flake-parts-lib) importApply;
+      flakeModules = {
+        ansible = importApply ./modules/ansible ctx;
+        talhelper = importApply ./modules/talhelper ctx;
+        task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
+      };
+    in {
       systems = ["x86_64-linux"];
+      imports = [inputs.devenv.flakeModule] ++ builtins.attrValues flakeModules;
 
       perSystem = {
-        config,
-        self',
         inputs',
         pkgs,
-        system,
         ...
       }: let
-        pkgs-devenv = import nixpkgs-devenv {inherit system;};
-
         talhelper = inputs'.talhelper.packages.default;
-
-        params = {pkgs = pkgs // {inherit talhelper;};};
-        inventory-yaml = import ./ansible/inventory.nix params;
-        talconfig-yaml = import ./talos/talconfig.nix params;
-        taskfile-yaml = import ./taskfile.nix params;
-
-        task-wrapper = pkgs.writeShellScriptBin "task" ''
-          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
-        '';
       in {
-        packages.default = task-wrapper;
-        apps.default = {
-          type = "app";
-          program = pkgs.lib.getExe task-wrapper;
+        # The default package.
+        # Effectively an OCI image containing the rendered Kubernetes manifests.
+        packages.default = pkgs.dockerTools.buildImage {
+          name = self.lib.cluster.name;
+          tag = "latest";
+          copyToRoot = pkgs.buildEnv {
+            name = "manifests";
+            paths = [./flux];
+          };
         };
 
+        # The devenv shell.
+        # Contains tooling and modules to effectively manage the cluster.
         devenv.shells.default = {
-          name = "homelab";
+          name = self.lib.github.repo;
           devenv.root = let
             devenvRootFileContent = builtins.readFile devenv-root.outPath;
           in
             pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
 
-          imports = [
-            # https://devenv.sh/guides/using-with-flake-parts/#import-a-devenv-module
-          ];
-
           packages = with pkgs; [
-            task-wrapper
-
             age
             alejandra
             ansible
@@ -99,11 +98,7 @@
             })
           ];
 
-          env = {
-            ANSIBLE_INVENTORY = inventory-yaml;
-            TALCONFIG = talconfig-yaml;
-            TALSECRET = ./talos/talsecret.sops.yaml;
-          };
+          env = {};
 
           enterShell = ''
             export KUBECONFIG=$DEVENV_STATE/talos/kubeconfig
@@ -111,5 +106,15 @@
           '';
         };
       };
-    };
+
+      # Other flake contents.
+      # Contains a library that is re-used by the modules.
+      flake = {
+        inherit flakeModules;
+        lib = import ./lib {
+          inherit self;
+          inherit (nixpkgs) lib;
+        };
+      };
+    });
 }

@@ -1,5 +1,6 @@
-{pkgs, ...}:
-with pkgs.lib; let
+{lib, ...}: let
+  inherit (lib) mod lists strings;
+
   # Sums a list of integers.
   sum = lists.foldr (a: b: a + b) 0;
   # Splits a string into a list of characters.
