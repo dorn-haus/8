@@ -18,6 +18,6 @@
   # Dell Igel D220
   ["12" "00:0b:ca:06:64:d6" "tal" false]
   ["13" "00:0b:ca:06:65:bb" "tal" false]
-  #["14" "00:0b:ca:06:69:e2" "tal" false]
-  #["15" "00:0b:ca:06:75:47" "tal" false]
+  ["14" "00:0b:ca:06:69:e2" "tal" false]
+  ["15" "00:0b:ca:06:75:47" "tal" false]
 ]
