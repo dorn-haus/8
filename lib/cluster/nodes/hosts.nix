@@ -7,6 +7,8 @@
   ["05" "00:8c:fa:d3:d0:56" "alp" false]
   ["06" "44:8a:5b:ca:96:18" "tal" false]
   ["07" "44:37:e6:56:60:0e" "tal" false]
+
+  # Fujitsu Futro S920
   ["08" "4c:52:62:12:00:0d" "alp" false]
   ["09" "4c:52:62:12:35:bb" "alp" false]
   ["10" "4c:52:62:11:10:60" "alp" false]
