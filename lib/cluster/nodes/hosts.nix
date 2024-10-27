@@ -14,8 +14,7 @@
   ["10" "4c:52:62:11:10:60" "alp" false]
 
   # Dell Wyse 3040
-  # Needs storage device driver.
-  #["11" "a4:bb:6d:1d:51:70" "tal" false]
+  ["11" "a4:bb:6d:1d:51:70" "alp" false]
 
   # Dell Igel D220
   ["12" "00:0b:ca:06:64:d6" "tal" false]
