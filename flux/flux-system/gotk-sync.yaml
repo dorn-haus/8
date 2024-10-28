@@ -7,7 +7,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m0s
-  url: oci://ghcr.io/attilaolah/homelab
+  url: oci://ghcr.io/attilaolah/manifests/homelab
   ref:
     tag: latest
 ---
