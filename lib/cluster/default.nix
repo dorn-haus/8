@@ -5,6 +5,7 @@ inputs @ {...}: {
   github = {
     owner = "attilaolah";
     repository = "homelab";
+    registry = "ghcr.io";
   };
 
   network = import ./network.nix;

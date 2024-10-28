@@ -16,7 +16,6 @@
   ping = getExe' pkgs.iputils "ping";
   rm = getExe' pkgs.coreutils "rm";
   sleep = getExe' pkgs.coreutils "sleep";
-  # talhelper = getExe' todo_talhelper "talhelper";
   talhelper = getExe' inputs'.talhelper.packages.default "talhelper";
   talosctl = getExe pkgs.talosctl;
   test = getExe' pkgs.coreutils "test";
@@ -126,8 +125,6 @@ in {
         ${flux} bootstrap github \
           --owner=${cluster.github.owner} \
           --repository=${cluster.github.repository} \
-          --branch=flux \
-          --path=./flux \
           --cluster-domain=${cluster.domain} \
           --personal
       '';

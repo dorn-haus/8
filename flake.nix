@@ -59,7 +59,7 @@
         # The default package.
         # Effectively an OCI image containing the rendered Kubernetes manifests.
         packages.default = pkgs.dockerTools.buildImage {
-          name = self.lib.cluster.name;
+          name = with self.lib.cluster.github; "${registry}/${owner}/${repository}";
           tag = "latest";
           copyToRoot = pkgs.buildEnv {
             name = "manifests";

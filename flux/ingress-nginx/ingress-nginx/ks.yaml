@@ -9,10 +9,10 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  path: ./flux/ingress-nginx/ingress-nginx/app
+  path: ./ingress-nginx/ingress-nginx/app
   prune: true
   sourceRef:
-    kind: GitRepository
+    kind: OCIRepository
     name: flux-system
   wait: true
   interval: 30m
