@@ -10,7 +10,7 @@ spec:
   ref:
     tag: latest
   secretRef:
-    name: flux-system
+    name: ghcr-auth
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
