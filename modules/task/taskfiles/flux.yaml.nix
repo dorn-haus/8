@@ -19,11 +19,17 @@
     ${nix} build --print-out-paths |
       ${xargs} ${zcat} > "${ociTar}"
 
-    ${chmod} +w --recursive "${ociDir}"
     ${rm} --recursive --force "${ociDir}"
     ${mkdir} --parents "${ociDir}"
     ${undocker} "${ociTar}" - |
       ${tar} --extract --directory "${ociDir}"
+    ${chmod} +w --recursive "${ociDir}"
+  '';
+  diff = pkgs.writeShellScript "flux-diff" ''
+    ${flux} diff kustomization flux-system \
+      --local-sources OciRepository/flux-system/flux-system=${ociDir} \
+      --path "${ociDir}" \
+      --recursive
   '';
 in {
   version = 3;
@@ -38,7 +44,7 @@ in {
       desc = "OCI image build + unpack + diff locally";
       cmds = [
         {task = "build";}
-        ''${flux} diff kustomization flux-system --path "${ociDir}"''
+        diff
       ];
     };
   };
