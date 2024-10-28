@@ -125,8 +125,6 @@ in {
         ${flux} bootstrap github \
           --owner=${cluster.github.owner} \
           --repository=${cluster.github.repository} \
-          --branch=flux \
-          --path=./flux \
           --cluster-domain=${cluster.domain} \
           --personal
       '';
