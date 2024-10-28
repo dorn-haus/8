@@ -27,8 +27,8 @@
   '';
   diff = pkgs.writeShellScript "flux-diff" ''
     ${flux} diff kustomization flux-system \
-      --local-sources OciRepository/flux-system/flux-system=${ociDir} \
-      --path "${ociDir}" \
+      --local-sources=OCIRepository/flux-system/flux-system=${ociDir} \
+      --path="${ociDir}" \
       --recursive
   '';
 in {
