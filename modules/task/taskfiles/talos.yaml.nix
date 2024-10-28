@@ -16,7 +16,6 @@
   ping = getExe' pkgs.iputils "ping";
   rm = getExe' pkgs.coreutils "rm";
   sleep = getExe' pkgs.coreutils "sleep";
-  # talhelper = getExe' todo_talhelper "talhelper";
   talhelper = getExe' inputs'.talhelper.packages.default "talhelper";
   talosctl = getExe pkgs.talosctl;
   test = getExe' pkgs.coreutils "test";
