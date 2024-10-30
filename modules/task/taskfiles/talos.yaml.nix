@@ -80,12 +80,13 @@ in {
           ${test} -f "$TALSECRET"
         ''
       ];
-      cmd = ''
-        ${talhelper} gensecret > todo.yaml
-        ${rm} -rf ${state}/*.yaml
-        ${echo} "Generating Talos config…"
-        ${talhelper} genconfig --config-file="$TALCONFIG" --secret-file="$TALSECRET" --out-dir="${state}"
-      '';
+      cmds = [
+        ''${talhelper} gensecret > "$TALSECRET"''
+        {
+          task = ":sops:encrypt-file";
+          vars.file = "$TALSECRET";
+        }
+      ];
       silent = true;
     };
 
