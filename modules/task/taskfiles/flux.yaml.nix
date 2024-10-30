@@ -4,7 +4,7 @@
   chmod = getExe' pkgs.coreutils "chmod";
   echo = getExe' pkgs.coreutils "echo";
   flux = getExe pkgs.fluxcd;
-  kubectl = getExe' pkgs.kubectl "kubectl";
+  helm = getExe pkgs.kubernetes-helm;
   mkdir = getExe' pkgs.coreutils "mkdir";
   nix = getExe pkgs.nix;
   rm = getExe' pkgs.coreutils "rm";
@@ -56,13 +56,11 @@ in {
       desc = "Install the flux-operator";
       cmd = let
         version = "0.10.0";
-        manifest = pkgs.fetchurl {
-          url = "https://github.com/controlplaneio-fluxcd/flux-operator/releases/download/v${version}/install.yaml";
-          hash = "sha256-QwYqISEXPKfGWzwxlJgWBkW3WOqwZprPj3HgAdWu6Z0";
-        };
       in ''
         ${echo} "Installing flux-operator version ${version}…"
-        ${kubectl} apply --filename="${manifest}"
+        ${helm} install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
+          --namespace=flux-system --create-namespace \
+          --version=${version}
       '';
       silent = true;
     };
