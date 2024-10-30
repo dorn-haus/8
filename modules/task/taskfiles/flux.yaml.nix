@@ -2,7 +2,9 @@
   inherit (pkgs.lib) getExe getExe';
 
   chmod = getExe' pkgs.coreutils "chmod";
+  echo = getExe' pkgs.coreutils "echo";
   flux = getExe pkgs.fluxcd;
+  kubectl = getExe' pkgs.kubectl "kubectl";
   mkdir = getExe' pkgs.coreutils "mkdir";
   nix = getExe pkgs.nix;
   rm = getExe' pkgs.coreutils "rm";
@@ -38,6 +40,7 @@ in {
     build = {
       desc = "OCI image build + unpack locally";
       cmd = build;
+      silent = true;
     };
 
     diff = {
@@ -46,6 +49,22 @@ in {
         {task = "build";}
         diff
       ];
+      silent = true;
+    };
+
+    install-operator = {
+      desc = "Install the flux-operator";
+      cmd = let
+        version = "0.1.0";
+        manifest = pkgs.fetchurl {
+          url = "https://github.com/flux-framework/flux-operator/releases/download/${version}/flux-operator.yaml";
+          hash = "sha256-9yc0CKbVK24BCN+4GOfuNlj1sEL3PUq8bw6/NoJGLMA=";
+        };
+      in ''
+        ${echo} "Installing flux-operator version ${version}…"
+        ${kubectl} apply --filename="${manifest}"
+      '';
+      silent = true;
     };
   };
 }
