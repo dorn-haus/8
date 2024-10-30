@@ -12,6 +12,7 @@
   undocker = getExe pkgs.undocker;
   xargs = getExe' pkgs.findutils "xargs";
   zcat = getExe' pkgs.gzip "zcat";
+  yq = getExe pkgs.yq;
 
   ociDir = "$DEVENV_STATE/oci";
   ociTar = "${ociDir}.tar";
@@ -52,14 +53,25 @@ in {
       silent = true;
     };
 
-    install-operator = {
-      desc = "Install the flux-operator";
-      cmd = let
-        version = "0.10.0";
-      in ''
-        ${echo} "Installing flux-operator version ${version}…"
-        ${helm} install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
-          --namespace=flux-system --create-namespace \
+    install-operator = let
+      name = "flux-operator";
+      namespace = "flux-system";
+      version = "0.10.0";
+    in {
+      desc = "Install the ${name}";
+      status = [
+        ''
+          installed_version=$(
+            ${helm} list -n ${namespace} -o yaml |
+              ${yq} '.[] | select(.name == "${name}") | .app_version' -r
+          )
+          [ "$installed_version" = "v${version}" ]
+        ''
+      ];
+      cmd = ''
+        ${echo} "Installing ${name} version ${version}…"
+        ${helm} install ${name} oci://ghcr.io/controlplaneio-fluxcd/charts/${name} \
+          --namespace=${namespace} --create-namespace \
           --version=${version}
       '';
       silent = true;
