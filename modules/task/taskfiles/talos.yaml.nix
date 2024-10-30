@@ -138,27 +138,25 @@ in {
       silent = true;
     };
 
-    install-cilium = {
+    install-cilium = let
+      name = "cilium";
+      chart = "${name}/${name}";
+      namespace = "kube-system";
+      version = "1.16.3";
+      values = self.lib.yaml.write ../../../talos/bootstrap/cilium-values.yaml.nix {inherit pkgs;};
+    in {
       desc = "Install Cilium";
-      cmd = let
-        name = "cilium";
-        chart = "${name}/${name}";
-        namespace = "kube-system";
-        version = "1.16.3";
-        values = self.lib.yaml.write ../../../talos/bootstrap/cilium-values.yaml.nix {inherit pkgs;};
-      in ''
+      status = [
+        ''
+          installed_version=$(
+            ${helm} list -n kube-system -o yaml |
+              ${yq} '.[] | select(.name == "cilium") | .app_version' -r
+          )
+          [ "$installed_version" = "${version}" ]
+        ''
+      ];
+      cmd = ''
         set -euo pipefail
-
-        ${echo} "Looking for installed version…"
-        installed_version=$(
-          ${helm} list -n kube-system -o yaml |
-            ${yq} '.[] | select(.name == "cilium") | .app_version' -r
-        )
-
-        if [ "$installed_version" = "${version}" ]; then
-          ${echo} "Version ${version} is already installed, nothing to do."
-          exit 0
-        fi
 
         ${echo} "Installing Cilium version ${version}, stand by…"
         ${helm} install ${name} ${chart} --namespace=${namespace} --version=${version} --values="${values}"
