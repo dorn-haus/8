@@ -1,0 +1,14 @@
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    # TODO: Generate this one.
+    version: 2.4.0
+    registry: ghcr.io/fluxcd
+    artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests
+  cluster:
+    type: kubernetes
