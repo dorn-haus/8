@@ -55,10 +55,10 @@ in {
     install-operator = {
       desc = "Install the flux-operator";
       cmd = let
-        version = "0.1.0";
+        version = "0.10.0";
         manifest = pkgs.fetchurl {
-          url = "https://github.com/flux-framework/flux-operator/releases/download/${version}/flux-operator.yaml";
-          hash = "sha256-9yc0CKbVK24BCN+4GOfuNlj1sEL3PUq8bw6/NoJGLMA=";
+          url = "https://github.com/controlplaneio-fluxcd/flux-operator/releases/download/v${version}/install.yaml";
+          hash = "sha256-QwYqISEXPKfGWzwxlJgWBkW3WOqwZprPj3HgAdWu6Z0";
         };
       in ''
         ${echo} "Installing flux-operator version ${version}…"
