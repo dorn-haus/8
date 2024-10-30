@@ -15,6 +15,7 @@ in {
       desc = "Create a new Age key";
       cmd = "${age-keygen} --output ${ageFile}";
       status = [ageTest];
+      silent = true;
     };
 
     age-restore-bw = {
@@ -23,6 +24,7 @@ in {
       # To restore the SOPS Age key from Bitwarden, the operator needs to have `rbw` installed.
       cmd = "rbw login && rbw unlock && rbw get home_lab_age_key > ${ageFile}";
       status = [ageTest];
+      silent = true;
     };
 
     encrypt-file = {
@@ -35,6 +37,7 @@ in {
           msg = "SOPS Age key file not found; run age-keygen or age-restore-bw.";
         }
       ];
+      silent = true;
     };
   };
 }

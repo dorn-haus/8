@@ -25,7 +25,7 @@ in {
   # This can be done because all nodes are on the same L2 network.
   routingMode = "native";
   autoDirectNodeRoutes = true;
-  ipv4.enabled = true; # default = true
+  ipv4.enabled = true; # default
   ipv6.enabled = true; # default = false
   ipv4NativeRoutingCIDR = cluster.network.pod.cidr4;
   ipv6NativeRoutingCIDR = cluster.network.pod.cidr6;
@@ -46,12 +46,7 @@ in {
 
   # Rollout pods automatically when a config map changes.
   rollOutCiliumPods = true;
-  operator = {
-    rollOutPods = true;
-    # Use a single operator replica.
-    # TODO: Add a second one when the nodes are prepared.
-    replicas = 1;
-  };
+  operator.rollOutPods = true;
 
   # Required security context capabilities.
   securityContext.capabilities = {
