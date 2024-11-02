@@ -9,7 +9,7 @@ in {
   };
   spec = {
     distribution = {
-      version = "2.4.x";
+      version = "2.4.0";
       registry = "ghcr.io/fluxcd";
       artifact = "oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests";
     };

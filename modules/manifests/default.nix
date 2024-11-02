@@ -95,7 +95,14 @@
     manifests-dir = pkgs.stdenv.mkDerivation {
       name = "manifests";
       phases = ["installPhase"];
-      installPhase = strings.concatStringsSep "\n" (map copyYAML srcs);
+      nativeBuildInputs = with pkgs; [fluxcd];
+      installPhase = let
+        copyAll = strings.concatStringsSep "\n" (map copyYAML srcs);
+      in ''
+        ${copyAll}
+        flux install --cluster-domain=${self.lib.cluster.domain} --export \
+          > "$out/flux-system/gotk-components.yaml"
+      '';
     };
 
     # OCI tar archive containing all manifests, used as build output.
