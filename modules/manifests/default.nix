@@ -1,7 +1,7 @@
 {...}: {self, ...}: {
   perSystem = {pkgs, ...}: let
-    inherit (builtins) isFunction;
-    inherit (pkgs.lib) fileset lists optionals;
+    inherit (builtins) attrValues isFunction mapAttrs readDir toJSON;
+    inherit (pkgs.lib) lists optionals sources strings isList;
 
     # https://github.com/NixOS/nixpkgs/pull/353081
     # Include a fork of the YAML formatter until multidoc support is upstreamed:
@@ -14,7 +14,7 @@
         }:
           runCommand name {
             nativeBuildInputs = [remarshal] ++ optionals multidoc [jq];
-            value = builtins.toJSON value;
+            value = toJSON value;
             passAsFile = ["value"];
             preferLocalBuild = true;
           } (
@@ -48,28 +48,62 @@
         valueType;
     };
 
+    # Process all files in //manifests that end in .yaml.nix.
+    root = sources.sourceFilesBySuffices ../../manifests [".yaml.nix"];
+
     # Load sources by file extension.
-    sources = fileset.fileFilter (file: file.type == "regular" && file.hasExt "yaml.nix") ../../manifests;
-    # If the loaded expression is a function, evaluate it.
-    # If an expression contains a list, flatten it as we don't expect top-level arrays in source files.
-    exprs = lists.flatten (map (src: let
-      expr = import src;
-    in
-      if isFunction expr
-      then (expr {inherit self;})
-      else expr)
-    (fileset.toList sources));
+    srcs = lists.flatten (walk root root);
+    walk = root: dir: (attrValues (mapAttrs (
+      name: type:
+        if type == "directory"
+        then walk root "${dir}/${name}" # recursive call
+        else toYAML root dir name
+    ) (readDir dir)));
 
-    # Finally combine each element into a single generated source file.
-    manifests-yaml = (yaml {multidoc = true;}).generate "manifests.yaml" exprs;
-  in {
-    devenv.shells.default.env.MANIFESTS = manifests-yaml;
+    # Generate YAML contents.
+    toYAML = root: dir: name: let
+      # File name.
+      absPath = "${dir}/${name}";
+      relPath = strings.removePrefix "${root}/" absPath;
+      dst = strings.removeSuffix ".nix" relPath;
 
-    packages.default = pkgs.stdenv.mkDerivation (finalAttrs: {
+      # File Contents.
+      expr = import absPath;
+      # If the loaded expression is a function, evaluate it.
+      contents =
+        if isFunction expr
+        then (expr {inherit self;})
+        else expr;
+    in {
+      inherit dst;
+      src = (yaml {multidoc = isList contents;}).generate dst contents;
+    };
+
+    # Create a symbolic link to a generated source file.
+    # Used for generating a symlink tree containing all manifests.
+    symlinkYAML = {
+      dst,
+      src,
+    }: let
+      output = "$out/${dst}";
+    in ''
+      mkdir --parents "$(dirname "${output}")"
+      ln --symbolic "${src}" "${output}"
+    '';
+
+    # Finally combine all elements into a symlink tree.
+    manifests-dir = pkgs.stdenv.mkDerivation {
+      name = "manifests";
+      phases = ["installPhase"];
+      installPhase = strings.concatStringsSep "\n" (map symlinkYAML srcs);
+    };
+
+    # OCI tar archive containing all manifests, used as build output.
+    manifests-oci = pkgs.stdenv.mkDerivation (finalAttrs: {
       pname = "manifests";
       version = "latest.tgz";
 
-      src = manifests-yaml;
+      src = manifests-dir;
       phases = ["installPhase"];
       nativeBuildInputs = with pkgs; [fluxcd];
       installPhase = ''
@@ -85,9 +119,16 @@
         maintainers = with lib.maintainers; [attila];
       };
     });
+  in {
+    devenv.shells.default.env.MANIFESTS = manifests-dir;
+
+    packages = {
+      inherit manifests-oci;
+      default = manifests-oci;
+    };
 
     apps = let
-      oci-push = let
+      push-oci = let
         inherit (pkgs.lib) getExe getExe';
         inherit (self.lib.cluster) github;
 
@@ -97,13 +138,13 @@
         mktemp = getExe' pkgs.coreutils "mktemp";
         rm = getExe' pkgs.coreutils "rm";
 
-        artifact-url = with github; "oci://${registry}/${owner}/${repository}:latest";
+        artifactURI = with github; "oci://${registry}/${owner}/${repository}:latest";
       in {
         type = "app";
-        program = pkgs.writeShellScriptBin "oci-push" ''
+        program = pkgs.writeShellScriptBin "push-oci" ''
           TEMP_DIR="$(${mktemp} --directory)"
-          ${ln} --symbolic "${manifests-yaml}" "$TEMP_DIR/manifests.tgz"
-          ${flux} push artifact "${artifact-url}" --path="$TEMP_DIR/manifests.tgz" --source="$(
+          ${ln} --symbolic "${manifests-oci}" "$TEMP_DIR/manifests.tgz"
+          ${flux} push artifact "${artifactURI}" --path="$TEMP_DIR/manifests.tgz" --source="$(
             ${git} config --get remote.origin.url
           )" --revision="$(
             ${git} describe --dirty
@@ -112,8 +153,8 @@
         '';
       };
     in {
-      inherit oci-push;
-      default = oci-push;
+      inherit push-oci;
+      default = push-oci;
     };
   };
 }

@@ -52,7 +52,7 @@ in {
       desc = "Upload OCI image to the registry";
       cmd = ''
         cd "$DEVENV_ROOT"
-        ${nix} run .#oci-push
+        ${nix} run .#push-oci
       '';
       silent = true;
     };
