@@ -42,6 +42,7 @@
       inherit (flake-parts-lib) importApply;
       flakeModules = {
         ansible = importApply ./modules/ansible ctx;
+        manifests = importApply ./modules/manifests ctx;
         talhelper = importApply ./modules/talhelper ctx;
         task = importApply ./modules/task (ctx // {inherit nixpkgs-devenv;});
       };
@@ -52,21 +53,11 @@
       perSystem = {
         inputs',
         pkgs,
+        self',
         ...
       }: let
         talhelper = inputs'.talhelper.packages.default;
       in {
-        # The default package.
-        # Effectively an OCI image containing the rendered Kubernetes manifests.
-        packages.default = pkgs.dockerTools.buildImage {
-          name = with self.lib.cluster.github; "${registry}/${owner}/${repository}";
-          tag = "latest";
-          copyToRoot = pkgs.buildEnv {
-            name = "manifests";
-            paths = [./flux];
-          };
-        };
-
         # The devenv shell.
         # Contains tooling and modules to effectively manage the cluster.
         devenv.shells.default = {
