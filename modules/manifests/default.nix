@@ -81,21 +81,21 @@
 
     # Create a symbolic link to a generated source file.
     # Used for generating a symlink tree containing all manifests.
-    symlinkYAML = {
+    copyYAML = {
       dst,
       src,
     }: let
       output = "$out/${dst}";
     in ''
       mkdir --parents "$(dirname "${output}")"
-      ln --symbolic "${src}" "${output}"
+      cp "${src}" "${output}"
     '';
 
     # Finally combine all elements into a symlink tree.
     manifests-dir = pkgs.stdenv.mkDerivation {
       name = "manifests";
       phases = ["installPhase"];
-      installPhase = strings.concatStringsSep "\n" (map symlinkYAML srcs);
+      installPhase = strings.concatStringsSep "\n" (map copyYAML srcs);
     };
 
     # OCI tar archive containing all manifests, used as build output.
