@@ -144,11 +144,11 @@
         program = pkgs.writeShellScriptBin "push-oci" ''
           TEMP_DIR="$(${mktemp} --directory)"
           ${ln} --symbolic "${manifests-oci}" "$TEMP_DIR/manifests.tgz"
-          ${flux} push artifact "${artifactURI}" --path="$TEMP_DIR/manifests.tgz" --source="$(
-            ${git} config --get remote.origin.url
-          )" --revision="$(
-            ${git} describe --dirty
-          )"
+          ${flux} push artifact "${artifactURI}" \
+            --path="$TEMP_DIR/manifests.tgz" \
+            --source="$(${git} config --get remote.origin.url)" \
+            --revision="$(${git} describe --dirty)" \
+            --reproducible
           ${rm} --recursive --force "$TEMP_DIR"
         '';
       };
