@@ -90,11 +90,7 @@ in {
         ''${kubectl} --namespace="${namespace}" get fluxinstance "${name}"''
       ];
       cmd = ''
-        ${yq} < "$MANIFESTS" '
-          select(.kind == "FluxInstance") |
-          select(.metadata.namespace == "${namespace}") |
-          select(.metadata.name == "${name}")
-        ' | ${kubectl} apply --filename=-
+        ${kubectl} apply --filename="$MANIFESTS/flux-system/flux-instance.yaml"
       '';
       silent = true;
     };
