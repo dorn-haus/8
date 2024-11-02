@@ -1,7 +1,7 @@
 builtins.attrValues (
   builtins.mapAttrs (name: url: {
-    apiVersion = "source.toolkit.fluxcd.io/v1";
     kind = "HelmRepository";
+    apiVersion = "source.toolkit.fluxcd.io/v1";
     metadata = {
       inherit name;
       namespace = "flux-system";

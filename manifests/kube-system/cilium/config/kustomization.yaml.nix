@@ -2,7 +2,7 @@
   kind = "Kustomization";
   apiVersion = "kustomize.config.k8s.io/v1beta1";
   resources = [
-    "./namespace.yaml"
-    "./cilium/ks.yaml"
+    "./l2-announcement-policy.yaml"
+    "./load-balancer-ip-pool.yaml"
   ];
 }

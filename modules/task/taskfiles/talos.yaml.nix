@@ -140,11 +140,13 @@ in {
     };
 
     install-cilium = let
-      name = "cilium";
-      chart = "${name}/${name}";
+      inherit (release.metadata) name;
+      inherit (release.spec.chart.spec) chart;
+      inherit (release.spec.chart.spec) version;
+
       namespace = "kube-system";
-      version = "1.16.3";
-      values = self.lib.yaml.write ../../../talos/bootstrap/cilium-values.yaml.nix {inherit pkgs;};
+      release = import ../../../manifests/kube-system/cilium/app/helm-release.yaml.nix;
+      values = self.lib.yaml.write ../../../manifests/kube-system/cilium/app/values.yaml.nix {inherit pkgs;};
     in {
       desc = "Install Cilium";
       status = [
@@ -160,7 +162,7 @@ in {
         set -euo pipefail
 
         ${echo} "Installing Cilium version ${version}, stand by…"
-        ${helm} install ${name} ${chart} --namespace=${namespace} --version=${version} --values="${values}"
+        ${helm} install ${name} ${chart}/${name} --namespace=${namespace} --version=${version} --values="${values}"
 
         ${echo} "Done, waiting for Cilium to become ready…"
         ${cilium} status --wait

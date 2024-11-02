@@ -1,8 +1,8 @@
 {self, ...}: let
   inherit (self.lib) cluster;
 in {
-  apiVersion = "fluxcd.controlplane.io/v1";
   kind = "FluxInstance";
+  apiVersion = "fluxcd.controlplane.io/v1";
   metadata = {
     name = "flux";
     namespace = "flux-system";
