@@ -33,12 +33,11 @@ in {
 
   external = rec {
     net4 = "10.10.0.0";
-    net4Len = 16;
+    net4Len = 24;
     cidr4 = toCIDR net4 net4Len;
 
-    nat = let
-      ingress = "10.10.10.10";
-    in {
+    ingress = "10.10.10.10";
+    nat = {
       "80" = ingress;
       "443" = ingress;
     };

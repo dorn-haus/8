@@ -4,13 +4,14 @@
   inputs',
   ...
 }: let
-  inherit (pkgs.lib) getExe getExe';
+  inherit (pkgs) lib;
+  inherit (lib) getExe getExe';
 
   bash = getExe pkgs.bash;
   cilium = getExe pkgs.cilium-cli;
-  flux = getExe pkgs.fluxcd;
+  echo = getExe' pkgs.coreutils "echo";
   grep = getExe' pkgs.gnugrep "grep";
-  helmfile = getExe pkgs.helmfile;
+  helm = getExe pkgs.kubernetes-helm;
   jq = getExe pkgs.jq;
   kubectl = getExe' pkgs.kubectl "kubectl";
   ping = getExe' pkgs.iputils "ping";
@@ -27,12 +28,16 @@ in {
   version = 3;
 
   tasks = let
-    node-exists = {
-      sh = "${talosctl} get machineconfig --nodes={{.node}}";
-      msg = "Talos node not found.";
+    have-talsecret = {
+      sh = ''${test} -f $"$TALSECRET"'';
+      msg = "Missing talsecret, run `task talos:gensecret` to generate it.";
     };
-    kubeconfig-exists = {
-      sh = "${test} -f $KUBECONFIG";
+    have-talosconfig = {
+      sh = ''${test} -f $"$TALOSCONFIG"'';
+      msg = "Missing talosconfig, run `task talos:genconfig` to generate it.";
+    };
+    have-kubeconfig = {
+      sh = ''${test} -f "$KUBECONFIG"'';
       msg = "Missing kubeconfig, run `task talos:fetch-kubeconfig` to fetch it.";
     };
   in {
@@ -42,6 +47,7 @@ in {
         # Wait for nodes to report not ready.
         # CNI is disabled initially, hence the nodes are not expected to be in ready state.
         waitForNodes = ready: ''
+          ${echo} "Waiting for nodes…"
           if [ "{{.wait}}" = "true" ]; then
             until ${kubectl} wait --for=condition=Ready=${
             if ready
@@ -53,8 +59,9 @@ in {
           fi
         '';
       in [
-        # TODO: gensecret
+        {task = "gensecret";}
         {task = "genconfig";}
+        {task = "ping";}
         {task = "apply-insecure";}
         {task = "install-k8s";}
         {task = "fetch-kubeconfig";}
@@ -62,82 +69,117 @@ in {
         {task = "install-cilium";}
         (waitForNodes true)
         "${talosctl} health --server=false"
-        {task = "install-flux";}
       ];
+      silent = true;
+    };
+
+    gensecret = {
+      desc = "Generate Talos secrets";
+      status = [
+        ''
+          ${test} -f "$TALSECRET"
+        ''
+      ];
+      cmds = [
+        ''${talhelper} gensecret > "$TALSECRET"''
+        {
+          task = ":sops:encrypt-file";
+          vars.file = "$TALSECRET";
+        }
+      ];
+      silent = true;
     };
 
     genconfig = {
-      desc = "Bootstrap Talos: #1 - generate configs";
+      desc = "Generate Talos configs";
       cmd = ''
         ${rm} -rf ${state}/*.yaml
+        ${echo} "Generating Talos config…"
         ${talhelper} genconfig --config-file="$TALCONFIG" --secret-file="$TALSECRET" --out-dir="${state}"
       '';
+      preconditions = [have-talsecret];
+      silent = true;
     };
 
     apply-insecure = {
-      desc = "Bootstrap Talos: #2 - apply initial config";
+      desc = "Apply initial cluster config";
       cmd = {
         task = "apply";
         vars.extra_flags = "--insecure";
       };
+      silent = true;
     };
 
     install-k8s = {
-      desc = "Bootstrap Talos: #3 - bootstrap k8s cluster";
+      desc = "Bootstrap Kubernetes on Talos nodes";
       cmd = ''
-        echo "Installing Talos, this might take a while and print errors"
+        ${echo} "Installing Kubernetes, this might take a while…"
         until ${talhelper} gencommand bootstrap --config-file="$TALCONFIG" --out-dir=${state} |
           ${bash}
           do ${sleep} 2
+          ${echo} Retrying…
         done
       '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
 
     fetch-kubeconfig = {
       desc = "Fetch Talos Kubernetes kubeconfig file";
       cmd = ''
+        ${echo} "Fetching kubeconfig…"
         until ${talhelper} gencommand kubeconfig --config-file="$TALCONFIG" --out-dir=${state} \
           --extra-flags="--merge=false --force $KUBECONFIG" |
           ${bash}
           do ${sleep} 2
+          ${echo} Retrying…
         done
       '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
 
-    install-cilium = {
-      desc = "Bootstrap Talos: #4 - install cilium";
-      cmds = let
-        helmfile-yaml = self.lib.yaml.write ../../../talos/bootstrap/helmfile.yaml.nix {inherit pkgs;};
-      in [
-        "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
-        "${cilium} status --wait"
+    install-cilium = let
+      inherit (release.metadata) name;
+      inherit (release.spec.chart.spec) chart;
+      inherit (release.spec.chart.spec) version;
+
+      namespace = "kube-system";
+      release = import ../../../manifests/kube-system/cilium/app/helm-release.yaml.nix;
+    in {
+      desc = "Install Cilium";
+      status = [
+        ''
+          installed_version=$(
+            ${helm} list -n kube-system -o yaml |
+              ${yq} '.[] | select(.name == "cilium") | .app_version' -r
+          )
+          [ "$installed_version" = "${version}" ]
+        ''
       ];
-      preconditions = [kubeconfig-exists];
-    };
+      cmd = ''
+        set -euo pipefail
 
-    install-flux = {
-      # TODO: Set up an OCI repository.
-      # TODO: Try to get the Flux token from Bitwarden.
-      desc = "Bootstrap Talos: #5 - install flux";
-      cmd = let
-        inherit (self.lib) cluster;
-      in ''
-        ${flux} bootstrap github \
-          --owner=${cluster.github.owner} \
-          --repository=${cluster.github.repository} \
-          --cluster-domain=${cluster.domain} \
-          --personal
+        ${echo} "Installing Cilium version ${version}, stand by…"
+        ${helm} install ${name} ${chart}/${name} --namespace=${namespace} --version=${version} --values="$MANIFESTS/kube-system/cilium/app/values.yaml"
+
+        ${echo} "Done, waiting for Cilium to become ready…"
+        ${cilium} status --wait
       '';
-      preconditions = [kubeconfig-exists];
+      preconditions = [have-kubeconfig];
+      silent = true;
     };
 
     apply = {
       desc = "Apply Talos config to all nodes";
       cmd = ''
+        ${echo} "Applying Talos config to all nodes…"
         ${talhelper} gencommand apply \
           --config-file="$TALCONFIG" --out-dir=${state} --extra-flags="{{.extra_flags}}" |
           ${bash}
       '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
 
     diff = {
@@ -146,14 +188,8 @@ in {
         task = "apply";
         vars.extra_flags = "--dry-run";
       };
-    };
-
-    dashboard = {
-      desc = "Show Talos dashboard on the first node";
-      cmd = ''
-        node="$(${yq} < $TALOSCONFIG '.context as $c | .contexts[$c] | .nodes[0]' -r)"
-        ${talosctl} dashboard --nodes="$node"
-      '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
 
     ping = {
@@ -162,54 +198,68 @@ in {
         ${yq} < $TALCONFIG '.nodes[] | select(.hostname | test("^.*{{.nodes}}.*$")) | .ipAddress' \
         | ${xargs} -i ${ping} -c 1 {} {{.CLI_ARGS}}
       '';
+      silent = true;
     };
 
     upgrade-talos = {
       desc = "Upgrade Talos on a node";
       requires.vars = ["node" "version"];
-      preconditions = [node-exists];
       status = [
         ''
-          ${talosctl} version --nodes={{.node}} --json |
+          ${talosctl} version --nodes="{{.node}}" --json |
           ${jq} -r .version.tag |
-          ${grep} 'v{{.version}}
+          ${grep} "v{{.version}}"
         ''
       ];
       cmd = ''
+        ${echo} "Upgrading node {{.node}} to version {{.version}}…"
         ${talosctl} upgrade \
           --nodes={{.node}} \
           --image=ghcr.io/siderolabs/installer:v{{.version}} \
           --reboot-mode=powercycle \
           --preserve=true
       '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
 
     upgrade-k8s = {
       desc = "Upgrade Kubernetes on a node";
       requires.vars = ["node" "version"];
-      preconditions = [node-exists];
       status = [
         ''
           ${kubectl} get node -ojson |
           ${jq} -r '.items[] | select(.metadata.name == "{{.node}}").status.nodeInfo.kubeletVersion' |
-          ${grep} 'v{{.version}}
+          ${grep} "v{{.version}}"
         ''
       ];
       cmd = ''
         ${talosctl} kpgrade-k8s --nodes={{.node}} --to=v{{.version}}
       '';
+      preconditions = [have-talosconfig have-kubeconfig];
+      silent = true;
     };
 
     reset = {
       desc = "Resets Talos nodes back to maintenance mode";
-      prompt = "Are you sure? This will destroy your cluster and reset the nodes back to maintenance mode.";
-      cmd = ''
+      prompt = "DANGER ZONE!!! Are you sure? This will reset the nodes back to maintenance mode.";
+      cmd = let
+        flags = lib.strings.concatStringsSep " " [
+          "--reboot"
+          "--system-labels-to-wipe=STATE"
+          "--system-labels-to-wipe=EPHEMERAL"
+          "--graceful=false"
+          "--wait=false"
+        ];
+      in ''
         ${talhelper} gencommand reset \
           --config-file=$TALCONFIG \
           --out-dir="${state}" \
-          --extra-flags="--reboot --system-labels-to-wipe=STATE --system-labels-to-wipe=EPHEMERAL --graceful=false --wait=false" |
+          --extra-flags="${flags}" |
           ${bash}
       '';
+      preconditions = [have-talosconfig];
+      silent = true;
     };
   };
 }

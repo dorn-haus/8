@@ -53,7 +53,10 @@ in {
         # Use Cilium's KubeProxy replacement.
         proxy.disabled = true;
       };
-      machine.network.nameservers = with cluster.network.uplink; dns4.two ++ dns6.two;
+      machine = {
+        kubelet.nodeIP.validSubnets = with cluster.network.node; [cidr4 cidr6];
+        network.nameservers = with cluster.network.uplink; dns4.two ++ dns6.two;
+      };
     })
   ];
 }
