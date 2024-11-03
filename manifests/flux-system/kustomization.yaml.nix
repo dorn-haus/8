@@ -4,6 +4,5 @@
   resources = [
     "flux-instance.yaml"
     "helm-repository.yaml"
-    "ks.yaml"
   ];
 }
