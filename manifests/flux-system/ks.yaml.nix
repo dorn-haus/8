@@ -7,8 +7,9 @@ ctx: {
   };
   spec = {
     interval = "10m";
-    path = "./flux-system";
+    force = true;
     prune = true;
+    wait = true;
     sourceRef = let
       repo = import ./oci-repository.yaml.nix ctx;
     in {

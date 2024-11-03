@@ -8,7 +8,7 @@ in {
     namespace = name;
   };
   spec = {
-    interval = "1m";
+    interval = "2m";
     url = with cluster.github; "oci://${registry}/${owner}/${repository}";
     ref.tag = "latest";
     secretRef.name = "ghcr-auth";
