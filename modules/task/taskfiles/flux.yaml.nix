@@ -65,6 +65,14 @@ in {
       silent = true;
     };
 
+    install = {
+      desc = "Install Flux (using flux-operator)";
+      cmds = [
+        {task = "install-operator";}
+        {task = "install-instance";}
+      ];
+    };
+
     install-operator = let
       name = "flux-operator";
       namespace = "flux-system";
