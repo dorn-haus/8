@@ -12,12 +12,7 @@ builtins.attrValues (
         targetNamespace = "kube-system";
         commonMetadata.labels."app.kubernetes.io/name" = name;
         prune = false; # should never be deleted
-        sourceRef = let
-          repo = import ../../flux-system/oci-repository.yaml.nix ctx;
-        in {
-          inherit (repo) kind;
-          inherit (repo.metadata) name;
-        };
+        sourceRef = import ../../flux-system/source.nix;
         wait = true;
         interval = "30m";
         retryInterval = "1m";

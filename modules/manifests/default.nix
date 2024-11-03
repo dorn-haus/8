@@ -1,6 +1,6 @@
 {...}: {self, ...}: {
   perSystem = {pkgs, ...}: let
-    inherit (builtins) attrValues isFunction mapAttrs readDir toJSON;
+    inherit (builtins) attrValues filter isFunction mapAttrs readDir toJSON;
     inherit (pkgs.lib) lists optionals sources strings isList;
 
     # https://github.com/NixOS/nixpkgs/pull/353081
@@ -49,15 +49,17 @@
     };
 
     # Process all files in //manifests that end in .yaml.nix.
-    root = sources.sourceFilesBySuffices ../../manifests [".yaml.nix"];
+    root = sources.sourceFilesBySuffices ../../manifests [".nix"];
 
     # Load sources by file extension.
-    srcs = lists.flatten (walk root root);
+    srcs = filter (item: item != null) (lists.flatten (walk root root));
     walk = root: dir: (attrValues (mapAttrs (
       name: type:
         if type == "directory"
         then walk root "${dir}/${name}" # recursive call
-        else toYAML root dir name
+        else if strings.hasSuffix ".yaml.nix" name
+        then toYAML root dir name # yaml conversion
+        else null # ignore
     ) (readDir dir)));
 
     # Generate YAML contents.
@@ -96,13 +98,7 @@
       name = "manifests";
       phases = ["installPhase"];
       nativeBuildInputs = with pkgs; [fluxcd];
-      installPhase = let
-        copyAll = strings.concatStringsSep "\n" (map copyYAML srcs);
-      in ''
-        ${copyAll}
-        flux install --cluster-domain=${self.lib.cluster.domain} --export \
-          > "$out/flux-system/gotk-components.yaml"
-      '';
+      installPhase = strings.concatStringsSep "\n" (map copyYAML srcs);
     };
 
     # OCI tar archive containing all manifests, used as build output.

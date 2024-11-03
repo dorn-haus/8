@@ -9,11 +9,6 @@ ctx: {
     interval = "10m";
     prune = true;
     wait = true;
-    sourceRef = let
-      repo = import ./oci-repository.yaml.nix ctx;
-    in {
-      inherit (repo) kind;
-      inherit (repo.metadata) name;
-    };
+    sourceRef = import ./source.nix;
   };
 }
