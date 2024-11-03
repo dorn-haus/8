@@ -1,3 +1,4 @@
+ctx:
 builtins.attrValues (
   builtins.mapAttrs (name: spec: {
     kind = "Kustomization";
@@ -11,9 +12,11 @@ builtins.attrValues (
         targetNamespace = "kube-system";
         commonMetadata.labels."app.kubernetes.io/name" = name;
         prune = false; # should never be deleted
-        sourceRef = {
-          kind = "OCIRepository";
-          name = "flux-system";
+        sourceRef = let
+          repo = import ../../flux-system/oci-repository.yaml.nix ctx;
+        in {
+          inherit (repo) kind;
+          inherit (repo.metadata) name;
         };
         wait = true;
         interval = "30m";
