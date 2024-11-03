@@ -57,6 +57,14 @@ in {
       silent = true;
     };
 
+    reconcile = {
+      desc = "Reconcile Flux manifests";
+      cmd = ''
+        ${flux} reconcile ks flux-system --with-source
+      '';
+      silent = true;
+    };
+
     install-operator = let
       name = "flux-operator";
       namespace = "flux-system";
