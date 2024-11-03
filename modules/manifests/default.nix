@@ -139,20 +139,22 @@
         inherit (pkgs.lib) getExe getExe';
         inherit (self.lib.cluster) github;
 
+        chmod = getExe' pkgs.coreutils "chmod";
         flux = getExe pkgs.fluxcd;
         git = getExe pkgs.git;
-        ln = getExe' pkgs.coreutils "ln";
         mktemp = getExe' pkgs.coreutils "mktemp";
         rm = getExe' pkgs.coreutils "rm";
+        tar = getExe pkgs.gnutar;
 
         artifactURI = with github; "oci://${registry}/${owner}/${repository}:latest";
       in {
         type = "app";
         program = pkgs.writeShellScriptBin "push-oci" ''
           TEMP_DIR="$(${mktemp} --directory)"
-          ${ln} --symbolic "${manifests-oci}" "$TEMP_DIR/manifests.tgz"
+          ${tar} --extract --file="${manifests-oci}" --directory="$TEMP_DIR"
+          ${chmod} --recursive +w "$TEMP_DIR"
           ${flux} push artifact "${artifactURI}" \
-            --path="$TEMP_DIR/manifests.tgz" \
+            --path="$TEMP_DIR" \
             --source="$(${git} config --get remote.origin.url)" \
             --revision="$(${git} describe --dirty)" \
             --reproducible

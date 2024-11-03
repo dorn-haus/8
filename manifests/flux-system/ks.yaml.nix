@@ -7,7 +7,6 @@ ctx: {
   };
   spec = {
     interval = "10m";
-    force = true;
     prune = true;
     wait = true;
     sourceRef = let
