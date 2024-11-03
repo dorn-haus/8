@@ -74,7 +74,7 @@
       # If the loaded expression is a function, evaluate it.
       contents =
         if isFunction expr
-        then (expr {inherit self;})
+        then (expr {inherit pkgs self;})
         else expr;
     in {
       inherit dst;

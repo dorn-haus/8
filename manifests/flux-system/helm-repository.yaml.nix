@@ -1,3 +1,4 @@
+{pkgs, ...}:
 builtins.attrValues (
   builtins.mapAttrs (name: url: {
     kind = "HelmRepository";
@@ -6,13 +7,20 @@ builtins.attrValues (
       inherit name;
       namespace = "flux-system";
     };
-    spec = {
-      inherit url;
-      interval = "24h";
-    };
+    spec =
+      {
+        inherit url;
+        interval = "2h";
+      }
+      // (
+        if pkgs.lib.strings.hasPrefix "oci://" url
+        then {type = "oci";}
+        else {}
+      );
   })
   {
     cilium = "https://helm.cilium.io";
     ingress-nginx = "https://kubernetes.github.io/ingress-nginx";
+    spegel = "oci://ghcr.io/spegel-org/helm-charts";
   }
 )
