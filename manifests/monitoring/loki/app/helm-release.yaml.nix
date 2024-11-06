@@ -10,7 +10,7 @@ in {
       chart = name;
       version = "3.2.1";
       sourceRef = {
-        inherit name;
+        name = "grafana";
         kind = "HelmRepository";
         namespace = "flux-system";
       };
