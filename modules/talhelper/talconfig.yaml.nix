@@ -42,8 +42,8 @@ in {
     })
     cluster.nodes.talos;
 
-  patches = [
-    (toYAML {
+  patches = map toYAML [
+    {
       cluster = {
         network = with cluster.network; {
           podSubnets = with pod; [cidr4 cidr6];
@@ -57,6 +57,6 @@ in {
         kubelet.nodeIP.validSubnets = with cluster.network.node; [cidr4 cidr6];
         network.nameservers = with cluster.network.uplink; dns4.two ++ dns6.two;
       };
-    })
+    }
   ];
 }
