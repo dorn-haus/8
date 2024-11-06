@@ -16,10 +16,10 @@ in {
       };
       interval = "12h";
     };
-    install.remediation.retries = 3;
+    install.remediation.retries = 2;
     upgrade = {
       cleanupOnFail = true;
-      remediation.retries = 3;
+      remediation.retries = 2;
     };
     valuesFrom = [
       {

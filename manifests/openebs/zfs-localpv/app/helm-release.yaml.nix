@@ -16,6 +16,11 @@ in {
       };
       interval = "12h";
     };
+    install.remediation.retries = 2;
+    upgrade = {
+      cleanupOnFail = true;
+      remediation.retries = 2;
+    };
     valuesFrom = [
       {
         kind = "ConfigMap";
