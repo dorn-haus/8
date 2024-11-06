@@ -1,4 +1,4 @@
-{
+{self, ...}: {
   loki = {
     schemaConfig.configs = [
       {
@@ -41,4 +41,6 @@
   minio.enabled = "true";
 
   gateway.service.type = "LoadBalancer";
+
+  global.clusterDomain = self.lib.cluster.domain;
 }
