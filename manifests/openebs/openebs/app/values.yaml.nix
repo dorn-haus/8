@@ -1,9 +1,6 @@
 {
   engines = {
-    local = {
-      lvm.enabled = false;
-      zfs.enabled = false;
-    };
+    local.lvm.enabled = false;
     replicated.mayastor.enabled = false;
   };
 }
