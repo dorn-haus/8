@@ -20,6 +20,7 @@ builtins.attrValues (
   })
   {
     cilium = "https://helm.cilium.io";
+    grafana = "https://grafana.github.io/helm-charts";
     ingress-nginx = "https://kubernetes.github.io/ingress-nginx";
     jetstack = "https://charts.jetstack.io";
     spegel = "oci://ghcr.io/spegel-org/helm-charts";
