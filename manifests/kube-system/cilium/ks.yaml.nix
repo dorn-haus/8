@@ -1,6 +1,9 @@
-ctx:
-builtins.attrValues (
-  builtins.mapAttrs (name: spec: {
+let
+  name = "cilium";
+  namespace = "kube-system";
+  path = "./${namespace}/${name}";
+
+  ks = name: spec: {
     kind = "Kustomization";
     apiVersion = "kustomize.toolkit.fluxcd.io/v1";
     metadata = {
@@ -9,7 +12,7 @@ builtins.attrValues (
     };
     spec =
       {
-        targetNamespace = "kube-system";
+        targetNamespace = namespace;
         commonMetadata.labels."app.kubernetes.io/name" = name;
         prune = false; # should never be deleted
         sourceRef = import ../../flux-system/source.nix;
@@ -19,19 +22,11 @@ builtins.attrValues (
         timeout = "5m";
       }
       // spec;
-  })
-  {
-    cilium = {
-      path = "./kube-system/cilium/app";
-    };
-    cilium-config = {
-      path = "./kube-system/cilium/config";
-      dependsOn = [
-        {
-          name = "cilium";
-          namespace = "flux-system";
-        }
-      ];
-    };
-  }
-)
+  };
+
+  app = ks name {path = "${path}/app";};
+  config = ks "${name}-config" {
+    path = "${path}/config";
+    dependsOn = [app.metadata];
+  };
+in [app config]
