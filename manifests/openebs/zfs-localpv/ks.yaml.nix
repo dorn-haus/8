@@ -1,6 +1,6 @@
 let
-  name = "openebs";
-  namespace = name;
+  name = "zfs-localpv";
+  namespace = "openebs";
 in {
   kind = "Kustomization";
   apiVersion = "kustomize.toolkit.fluxcd.io/v1";
