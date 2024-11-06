@@ -9,7 +9,7 @@ in {
     namespace = "flux-system";
   };
   spec = {
-    targetNamespace = name;
+    targetNamespace = namespace;
     commonMetadata.labels."app.kubernetes.io/name" = name;
     path = "./${namespace}/${name}/app";
     prune = true;
