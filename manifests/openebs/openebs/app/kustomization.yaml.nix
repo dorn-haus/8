@@ -1,5 +1,5 @@
 let
-  name = "spegel";
+  name = "openebs";
 in {
   kind = "Kustomization";
   apiVersion = "kustomize.config.k8s.io/v1beta1";

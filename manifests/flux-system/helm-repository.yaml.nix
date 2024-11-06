@@ -21,6 +21,7 @@ builtins.attrValues (
   {
     cilium = "https://helm.cilium.io";
     ingress-nginx = "https://kubernetes.github.io/ingress-nginx";
+    openebs = "https://openebs.github.io/openebs";
     spegel = "oci://ghcr.io/spegel-org/helm-charts";
   }
 )
