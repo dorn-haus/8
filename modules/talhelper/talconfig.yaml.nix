@@ -9,7 +9,7 @@
   toYAML = pkgs.lib.generators.toYAML {};
 in {
   clusterName = cluster.name;
-  talosVersion = "v1.8.1";
+  talosVersion = "v1.8.2";
   kubernetesVersion = "v1.31.2";
   endpoint = "https://${first.ipv4}:6443";
   domain = cluster.domain;
