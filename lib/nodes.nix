@@ -17,11 +17,13 @@ map (src: let
   pre4 = builtins.substring 0 (builtins.stringLength node.net4 - 2) node.net4;
   ipv4 = "${pre4}.${toString (toIntBase10 index)}";
   ipv6 = eui64 node.net6 data.mac;
-in {
-  inherit ipv4 ipv6;
-  inherit (data) controlPlane mac os;
 
-  hostname = "${cluster.name}-${index}";
-  net4 = "${ipv4}/${toString node.net4Len}";
-  net6 = "${ipv6}/${toString node.net6Len}";
-}) (lib.fileset.toList dir)
+  extras = {
+    inherit ipv4 ipv6;
+
+    hostname = "${cluster.name}-${index}";
+    net4 = "${ipv4}/${toString node.net4Len}";
+    net6 = "${ipv6}/${toString node.net6Len}";
+  };
+in
+  extras // data) (lib.fileset.toList dir)
