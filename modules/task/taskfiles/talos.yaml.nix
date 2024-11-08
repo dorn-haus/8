@@ -1,20 +1,24 @@
 {
   pkgs,
+  self,
   inputs',
   ...
 }: let
   inherit (pkgs) lib;
   inherit (lib) getExe getExe';
+  inherit (self.lib) cluster;
 
   bash = getExe pkgs.bash;
   cilium = getExe pkgs.cilium-cli;
   echo = getExe' pkgs.coreutils "echo";
   grep = getExe' pkgs.gnugrep "grep";
+  head = getExe' pkgs.coreutils "head";
   helm = getExe pkgs.kubernetes-helm;
   jq = getExe pkgs.jq;
   kubectl = getExe' pkgs.kubectl "kubectl";
   ping = getExe' pkgs.iputils "ping";
   rm = getExe' pkgs.coreutils "rm";
+  sed = getExe pkgs.gnused;
   sleep = getExe' pkgs.coreutils "sleep";
   talhelper = getExe' inputs'.talhelper.packages.default "talhelper";
   talosctl = getExe pkgs.talosctl;
@@ -200,21 +204,39 @@ in {
       silent = true;
     };
 
-    upgrade-talos = {
+    upgrade-talos = let
+      vars = ''
+        IP="$(
+          ${yq} -r < $TALCONFIG '
+            .nodes[] |
+            select(.hostname == "{{.node}}") |
+            .ipAddress
+          '
+        )"
+        IMAGE="$(
+          ${yq} -r < "$DEVENV_STATE/talos/${cluster.name}-{{.node}}.yaml" \
+            .machine.install.image |
+          ${head} --lines=1
+        )"
+        VERSION="$(${sed} "s/.*:v//" <<< "$IMAGE")"
+      '';
+    in {
       desc = "Upgrade Talos on a node";
-      requires.vars = ["node" "version"];
+      requires.vars = ["node"];
       status = [
         ''
-          ${talosctl} version --nodes="{{.node}}" --json |
+          ${vars}
+          ${talosctl} version --nodes="$IP" --json |
           ${jq} -r .version.tag |
-          ${grep} "v{{.version}}"
+          ${grep} "v$VERSION"
         ''
       ];
       cmd = ''
-        ${echo} "Upgrading node {{.node}} to version {{.version}}…"
+        ${vars}
+        ${echo} "Upgrading node {{.node}} ($IP) to version {{.version}}…"
         ${talosctl} upgrade \
-          --nodes={{.node}} \
-          --image=ghcr.io/siderolabs/installer:v{{.version}} \
+          --nodes="$IP" \
+          --image="$IMAGE" \
           --reboot-mode=powercycle \
           --preserve=true
       '';
