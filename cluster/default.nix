@@ -25,7 +25,7 @@
   in {
     inherit all;
     by = {
-      controlPlane = filter (node: node.controlPlane) all;
+      controlPlane = filter ({controlPlane, ...}: controlPlane) all;
       os = listToAttrs (map byOS (unique (map ({os, ...}: os) all)));
     };
   };
