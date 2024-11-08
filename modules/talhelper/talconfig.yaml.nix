@@ -6,11 +6,10 @@
   inherit (builtins) head;
   inherit (self.lib) cluster yaml;
 
-  first = head cluster.nodes.cplane;
+  first = head cluster.nodes.by.controlPlane;
 
   node = node: {
-    inherit (node) hostname;
-    controlPlane = node.cplane;
+    inherit (node) hostname controlPlane;
 
     ipAddress = node.ipv4;
     installDiskSelector.type = "ssd";
@@ -44,7 +43,7 @@ in {
   # Currently the control plane nodes don't do much anyway.
   allowSchedulingOnControlPlanes = true;
 
-  nodes = map node cluster.nodes.talos;
+  nodes = map node cluster.nodes.by.os.talos;
 
   patches = map yaml.format [
     {

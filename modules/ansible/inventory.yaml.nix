@@ -14,7 +14,7 @@
       group);
 in {
   alpine = {
-    hosts = clusterGroup cluster.nodes.alpine;
+    hosts = clusterGroup cluster.nodes.by.os.alpine;
     vars = {
       inherit (cluster) network;
       cluster = {inherit (cluster) domain name;};
