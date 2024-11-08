@@ -3,10 +3,36 @@
   pkgs,
   ...
 }: let
-  inherit (self.lib) cluster;
+  inherit (builtins) head;
+  inherit (self.lib) cluster yaml;
 
-  first = builtins.head cluster.nodes.cplane;
-  toYAML = pkgs.lib.generators.toYAML {};
+  first = head cluster.nodes.cplane;
+
+  node = node: {
+    inherit (node) hostname;
+    controlPlane = node.cplane;
+
+    ipAddress = node.ipv4;
+    installDiskSelector.type = "ssd";
+    networkInterfaces = [
+      {
+        deviceSelector.hardwareAddr = node.mac;
+        addresses = [node.net4];
+        routes = [
+          {
+            network = "0.0.0.0/0";
+            gateway = cluster.network.uplink.gw4;
+          }
+          # IPv6 default route is auto-configured.
+        ];
+        dhcp = false;
+      }
+    ];
+
+    extraManifests = [
+      (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
+    ];
+  };
 in {
   clusterName = cluster.name;
   talosVersion = "v1.8.2";
@@ -18,31 +44,9 @@ in {
   # Currently the control plane nodes don't do much anyway.
   allowSchedulingOnControlPlanes = true;
 
-  nodes =
-    map (node: {
-      inherit (node) hostname;
-      controlPlane = node.cplane;
+  nodes = map node cluster.nodes.talos;
 
-      ipAddress = node.ipv4;
-      installDiskSelector.type = "ssd";
-      networkInterfaces = [
-        {
-          deviceSelector.hardwareAddr = node.mac;
-          addresses = [node.net4];
-          routes = [
-            {
-              network = "0.0.0.0/0";
-              gateway = cluster.network.uplink.gw4;
-            }
-            # IPv6 default route is auto-configured.
-          ];
-          dhcp = false;
-        }
-      ];
-    })
-    cluster.nodes.talos;
-
-  patches = map toYAML [
+  patches = map yaml.format [
     {
       cluster = {
         network = with cluster.network; {

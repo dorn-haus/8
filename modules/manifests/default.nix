@@ -1,52 +1,7 @@
 {...}: {self, ...}: {
   perSystem = {pkgs, ...}: let
-    inherit (builtins) attrValues filter isFunction mapAttrs readDir toJSON;
-    inherit (pkgs.lib) lists optionals sources strings isList;
-
-    # https://github.com/NixOS/nixpkgs/pull/353081
-    # Include a fork of the YAML formatter until multidoc support is upstreamed:
-    yaml = {multidoc ? false}: {
-      generate = name: value:
-        pkgs.callPackage ({
-          runCommand,
-          remarshal,
-          jq,
-        }:
-          runCommand name {
-            nativeBuildInputs = [remarshal] ++ optionals multidoc [jq];
-            value = toJSON value;
-            passAsFile = ["value"];
-            preferLocalBuild = true;
-          } (
-            if multidoc
-            then ''
-              jq -c '.[]' < "$valuePath" | while IFS= read -r line; do
-                echo "---"
-                echo "$line" | json2yaml
-              done > "$out"
-            ''
-            else ''
-              json2yaml "$valuePath" "$out"
-            ''
-          )) {};
-
-      type = let
-        valueType = with builtins;
-          nullOr (oneOf [
-            bool
-            int
-            float
-            str
-            path
-            (attrsOf valueType)
-            (listOf valueType)
-          ])
-          // {
-            description = "YAML value";
-          };
-      in
-        valueType;
-    };
+    inherit (builtins) attrValues filter mapAttrs readDir;
+    inherit (pkgs.lib) lists sources strings;
 
     # Process all files in //manifests that end in .yaml.nix.
     root = sources.sourceFilesBySuffices ../../manifests [".nix"];
@@ -68,17 +23,12 @@
       absPath = "${dir}/${name}";
       relPath = strings.removePrefix "${root}/" absPath;
       dst = strings.removeSuffix ".nix" relPath;
-
-      # File Contents.
-      expr = import absPath;
-      # If the loaded expression is a function, evaluate it.
-      contents =
-        if isFunction expr
-        then (expr {inherit pkgs self;})
-        else expr;
     in {
       inherit dst;
-      src = (yaml {multidoc = isList contents;}).generate dst contents;
+      src = self.lib.yaml.write absPath {
+        inherit pkgs;
+        name = dst;
+      };
     };
 
     # Create a symbolic link to a generated source file.

@@ -96,17 +96,6 @@ in {
         ${rm} -rf ${state}/*.yaml
         ${echo} "Generating Talos config…"
         ${talhelper} genconfig --config-file="$TALCONFIG" --secret-file="$TALSECRET" --out-dir="${state}"
-        for config in "${state}/${self.lib.cluster.name}"-*.yaml; do
-        yaml="$(cat "$config")"
-        cat <<EOF > "$config"
-        ---
-        $yaml
-        ---
-        apiVersion: v1alpha1
-        kind: WatchdogTimerConfig
-        device: /dev/watchdog0
-        EOF
-        done
       '';
       preconditions = [have-talsecret];
       silent = true;
