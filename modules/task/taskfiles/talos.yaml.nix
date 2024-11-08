@@ -234,7 +234,7 @@ in {
         ''
       ];
       cmd = ''
-        ${talosctl} kpgrade-k8s --nodes={{.node}} --to=v{{.version}}
+        ${talosctl} upgrade-k8s --nodes={{.node}} --to=v{{.version}}
       '';
       preconditions = [have-talosconfig have-kubeconfig];
       silent = true;
