@@ -233,7 +233,7 @@ in {
       ];
       cmd = ''
         ${vars}
-        ${echo} "Upgrading node {{.node}} ($IP) to version {{.version}}…"
+        ${echo} "Upgrading node {{.node}} ($IP) to version $VERSION…"
         ${talosctl} upgrade \
           --nodes="$IP" \
           --image="$IMAGE" \
