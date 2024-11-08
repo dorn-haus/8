@@ -1,6 +1,6 @@
 let
-  name = "cilium";
-  namespace = "kube-system";
+  name = "zfs-localpv";
+  namespace = "openebs";
   path = "./${namespace}/${name}";
 
   ks = name: spec: {
@@ -14,7 +14,7 @@ let
       {
         targetNamespace = namespace;
         commonMetadata.labels."app.kubernetes.io/name" = name;
-        prune = false; # should never be deleted
+        prune = true;
         sourceRef = import ../../flux-system/source.nix;
         wait = true;
         interval = "30m";

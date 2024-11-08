@@ -1,5 +1,6 @@
 let
   name = "spegel";
+  namespace = "system";
 in {
   kind = "Kustomization";
   apiVersion = "kustomize.toolkit.fluxcd.io/v1";
@@ -8,9 +9,9 @@ in {
     namespace = "flux-system";
   };
   spec = {
-    targetNamespace = "system";
+    targetNamespace = namespace;
     commonMetadata.labels."app.kubernetes.io/name" = name;
-    path = "./system/spegel/app";
+    path = "./${namespace}/${name}/app";
     prune = true;
     sourceRef = import ../../flux-system/source.nix;
     wait = true;

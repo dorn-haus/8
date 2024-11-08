@@ -1,5 +1,5 @@
 let
-  name = "cilium";
+  name = "zfs-localpv";
 in {
   kind = "HelmRelease";
   apiVersion = "helm.toolkit.fluxcd.io/v2";
@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "1.16.3";
+      version = "2.6.2";
       sourceRef = {
         inherit name;
         kind = "HelmRepository";
