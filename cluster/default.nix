@@ -1,4 +1,7 @@
-{self}: {
+{
+  self,
+  lib,
+}: {
   name = "locker";
   domain = "dorn.haus";
 
@@ -12,6 +15,7 @@
 
   nodes = let
     inherit (builtins) filter listToAttrs;
+    inherit (lib.lists) unique;
 
     all = self.lib.nodes ./nodes;
     byOS = os: {
@@ -22,7 +26,7 @@
     inherit all;
     by = {
       controlPlane = filter (node: node.controlPlane) all;
-      os = listToAttrs (map byOS ["alpine" "talos"]);
+      os = listToAttrs (map byOS (unique (map ({os, ...}: os) all)));
     };
   };
 }
