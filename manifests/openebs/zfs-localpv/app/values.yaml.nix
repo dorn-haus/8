@@ -1,6 +1,6 @@
 {
   zfsNode = {
     encrKeysDir = "/var/zfs/keys";
-    nodeSelector.pvpool = "true";
+    nodeSelector.pvpool = "zfs";
   };
 }
