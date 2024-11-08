@@ -1,59 +1,54 @@
 {
+  lib,
   self,
   pkgs,
   ...
 }: let
   inherit (builtins) elem head;
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.lists) flatten optional;
   inherit (self.lib) cluster yaml;
 
-  first = head cluster.nodes.by.controlPlane;
+  node = node:
+    {
+      inherit (node) hostname controlPlane;
 
-  node = node: {
-    inherit (node) hostname controlPlane;
+      ipAddress = node.ipv4;
+      installDiskSelector.type = "ssd";
+      networkInterfaces = [
+        {
+          deviceSelector.hardwareAddr = node.mac;
+          addresses = [node.net4];
+          routes = [
+            {
+              network = "0.0.0.0/0";
+              gateway = cluster.network.uplink.gw4;
+            }
+            # IPv6 default route is auto-configured.
+          ];
+          dhcp = false;
+        }
+      ];
 
-    ipAddress = node.ipv4;
-    installDiskSelector.type = "ssd";
-    networkInterfaces = [
-      {
-        deviceSelector.hardwareAddr = node.mac;
-        addresses = [node.net4];
-        routes = [
-          {
-            network = "0.0.0.0/0";
-            gateway = cluster.network.uplink.gw4;
-          }
-          # IPv6 default route is auto-configured.
-        ];
-        dhcp = false;
-      }
-    ];
+      kernelModules = optional node.zfs {name = "zfs";};
 
-    schematic.customization.systemExtensions.officialExtensions = let
-      ucode =
-        if elem node.cpu ["intel" "amd"]
-        then ["siderolabs/${node.cpu}-ucode"]
-        else [];
-      zfs =
-        if node.zfs
-        then ["siderolabs/zfs"]
-        else [];
-    in
-      ucode ++ zfs;
+      schematic.customization.systemExtensions.officialExtensions = flatten [
+        (optional (elem node.cpu ["intel" "amd"]) "siderolabs/${node.cpu}-ucode")
+        (optional node.zfs "siderolabs/zfs")
+      ];
 
-    kernelModules =
-      if node.zfs
-      then [{name = "zfs";}]
-      else [];
-
-    extraManifests = [
-      (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
-    ];
-  };
+      extraManifests = [
+        (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
+      ];
+    }
+    // optionalAttrs node.zfs {
+      nodeLabels.pvpool = "zfs";
+    };
 in {
   clusterName = cluster.name;
   talosVersion = "v1.8.2";
   kubernetesVersion = "v1.31.2";
-  endpoint = "https://${first.ipv4}:6443";
+  endpoint = "https://${(head cluster.nodes.by.controlPlane).ipv4}:6443";
   domain = cluster.domain;
 
   # Allow running jobs on control plane nodes.
