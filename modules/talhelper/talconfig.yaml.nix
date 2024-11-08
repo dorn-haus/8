@@ -28,9 +28,21 @@
       }
     ];
 
-    schematic.customization.systemExtensions.officialExtensions =
-      if elem node.cpu ["intel" "amd"]
-      then ["siderolabs/${node.cpu}-ucode"]
+    schematic.customization.systemExtensions.officialExtensions = let
+      ucode =
+        if elem node.cpu ["intel" "amd"]
+        then ["siderolabs/${node.cpu}-ucode"]
+        else [];
+      zfs =
+        if node.zfs
+        then ["siderolabs/zfs"]
+        else [];
+    in
+      ucode ++ zfs;
+
+    kernelModules =
+      if node.zfs
+      then [{name = "zfs";}]
       else [];
 
     extraManifests = [

@@ -24,6 +24,9 @@ map (src: let
     hostname = "${cluster.name}-${index}";
     net4 = "${ipv4}/${toString node.net4Len}";
     net6 = "${ipv6}/${toString node.net6Len}";
+
+    # Defaults:
+    zfs = false;
   };
 in
   extras // data) (lib.fileset.toList dir)
