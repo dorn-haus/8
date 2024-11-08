@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) head;
+  inherit (builtins) elem head;
   inherit (self.lib) cluster yaml;
 
   first = head cluster.nodes.by.controlPlane;
@@ -27,6 +27,11 @@
         dhcp = false;
       }
     ];
+
+    schematic.customization.systemExtensions.officialExtensions =
+      if elem node.cpu ["intel" "amd"]
+      then ["siderolabs/${node.cpu}-ucode"]
+      else [];
 
     extraManifests = [
       (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
