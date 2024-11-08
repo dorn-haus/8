@@ -40,6 +40,11 @@
     in
       ucode ++ zfs;
 
+    kernelModules =
+      if node.zfs
+      then [{name = "zfs";}]
+      else [];
+
     extraManifests = [
       (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
     ];
