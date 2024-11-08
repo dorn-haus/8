@@ -3,8 +3,8 @@
     schemaConfig.configs = [
       {
         from = "2024-11-06";
-        store = "tsdb";
         object_store = "s3";
+        store = "tsdb";
         schema = "v13";
         index = {
           prefix = "loki_index_";
@@ -14,14 +14,11 @@
     ];
     ingester.chunk_encoding = "snappy";
 
+    # The recommended value for the TSDB index is 16.
     # Default is 4, should increase this when having enough resources.
     querier.max_concurrent = 2;
     pattern_ingester.enabled = true;
-    limits_config = {
-      allow_structured_metadata = true;
-      volume_enabled = true;
-      retention_period = "${toString (24 * 7 * 4)}h";
-    };
+    limits_config.retention_period = "${toString (24 * 7 * 4)}h";
     compactor = {
       retention_enabled = true;
       delete_request_store = "s3";
