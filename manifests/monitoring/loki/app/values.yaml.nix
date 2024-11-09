@@ -1,9 +1,11 @@
-{self, ...}: {
-  loki = {
+{
+  loki = rec {
+    auth_enabled = false;
+    commonConfig.replication_factor = 1;
     schemaConfig.configs = [
       {
-        from = "2024-11-06";
-        object_store = "s3";
+        from = "2024-01-01";
+        object_store = storage.type;
         store = "tsdb";
         schema = "v13";
         index = {
@@ -12,32 +14,28 @@
         };
       }
     ];
-    ingester.chunk_encoding = "snappy";
+    storage.type = "filesystem";
+  };
 
-    # The recommended value for the TSDB index is 16.
-    # Default is 4, should increase this when having enough resources.
-    querier.max_concurrent = 2;
-    pattern_ingester.enabled = true;
-    limits_config.retention_period = "${toString (24 * 7 * 4)}h";
-    compactor = {
-      retention_enabled = true;
-      delete_request_store = "s3";
+  deploymentMode = "SingleBinary";
+  singleBinary = {
+    replicas = 1;
+    persistence.size = "20Gi"; # 10Gi default
+  };
+
+  read.replicas = 0;
+  write.replicas = 0;
+  backend.replicas = 0;
+  chunksCache.enabled = false;
+
+  monitoring = {
+    dashboards.enabled = true;
+    serviceMonitor = {
+      enabled = true;
+      metricsInstance.enabled = true;
     };
   };
 
-  deploymentMode = "SimpleScalable";
-
-  backend.replicas = 2;
-  read.replicas = 2;
-
-  # To ensure data durability with replication.
-  write.replicas = 3;
-
-  # Simple MinIO storage backend.
-  # This will do for now; but will need to replace it eventually.
-  minio.enabled = "true";
-
+  # Allow ingesting logs from outside the cluster (e.g. Alpine hosts).
   gateway.service.type = "LoadBalancer";
-
-  global.clusterDomain = self.lib.cluster.domain;
 }

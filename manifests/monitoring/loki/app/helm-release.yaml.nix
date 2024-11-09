@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "3.2.1";
+      version = "6.19.0";
       sourceRef = {
         name = "grafana";
         kind = "HelmRepository";
