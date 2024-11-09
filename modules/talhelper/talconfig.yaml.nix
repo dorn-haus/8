@@ -49,7 +49,6 @@ in {
   talosVersion = "v1.8.2";
   kubernetesVersion = "v1.31.2";
   endpoint = "https://${(head cluster.nodes.by.controlPlane).ipv4}:6443";
-  domain = cluster.domain;
 
   # Allow running jobs on control plane nodes.
   # Currently the control plane nodes don't do much anyway.

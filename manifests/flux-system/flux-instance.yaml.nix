@@ -1,6 +1,4 @@
-{self, ...}: let
-  inherit (self.lib) cluster;
-in {
+{self, ...}: {
   kind = "FluxInstance";
   apiVersion = "fluxcd.controlplane.io/v1";
   metadata = {
@@ -15,7 +13,7 @@ in {
     };
     sync = {
       inherit (import ./source.nix) kind;
-      url = with cluster.github; "oci://${registry}/${owner}/${repository}";
+      url = with self.lib.cluster.github; "oci://${registry}/${owner}/${repository}";
       ref = "latest";
       path = ".";
       pullSecret = "ghcr-auth";
@@ -23,7 +21,6 @@ in {
     cluster = {
       type = "kubernetes";
       networkPolicy = true;
-      domain = cluster.domain;
     };
   };
 }
