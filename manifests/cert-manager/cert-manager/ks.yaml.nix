@@ -25,8 +25,8 @@ let
   };
 
   app = ks name {path = "${path}/app";};
-  issuers = ks "${name}-issuers" {
-    path = "${path}/issuers";
+  config = ks "${name}-config" {
+    path = "${path}/config";
     dependsOn = [app.metadata];
   };
-in [app issuers]
+in [app config]
