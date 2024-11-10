@@ -1,8 +1,11 @@
-{self, ...}: {
+{self, ...}: let
+  path = "/grafana";
+in {
   # Expose Grafana via an ingress path on the default hostname.
   ingress = {
+    inherit path;
+
     enabled = true;
-    path = "/grafana";
     hosts = [self.lib.cluster.domain];
 
     # TODO: Set the default ingress class!
@@ -25,4 +28,7 @@
     maxReplicas = 2;
   };
   podDisruptionBudget.minAvailable = 1;
+
+  # Grafana's primary configuration.
+  "grafana.ini".server.root_url = "https://${self.lib.cluster.domain}${path}";
 }
