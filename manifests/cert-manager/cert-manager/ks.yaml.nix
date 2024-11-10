@@ -1,5 +1,5 @@
 let
-  name = "ingress-nginx";
+  name = "cert-manager";
   namespace = name;
   path = "./${namespace}/${name}";
 
@@ -14,7 +14,7 @@ let
       {
         targetNamespace = namespace;
         commonMetadata.labels."app.kubernetes.io/name" = name;
-        prune = true;
+        prune = false; # should never be deleted
         sourceRef = import ../../flux-system/source.nix;
         wait = true;
         interval = "30m";
@@ -27,6 +27,6 @@ let
   app = ks name {path = "${path}/app";};
   config = ks "${name}-config" {
     path = "${path}/config";
-    dependsOn = [{name = "cert-manager-config";}];
+    dependsOn = [app.metadata];
   };
 in [app config]
