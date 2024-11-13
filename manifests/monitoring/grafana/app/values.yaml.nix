@@ -30,5 +30,8 @@ in {
   podDisruptionBudget.minAvailable = 1;
 
   # Grafana's primary configuration.
-  "grafana.ini".server.root_url = "https://${self.lib.cluster.domain}${path}";
+  "grafana.ini".server = {
+    root_url = "https://${self.lib.cluster.domain}${path}";
+    serve_from_sub_path = true;
+  };
 }
