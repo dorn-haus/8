@@ -1,7 +1,7 @@
 {self, ...}: let
   inherit (self.lib) cluster;
 
-  prod = false;
+  prod = true;
   suffix =
     if prod
     then ""
