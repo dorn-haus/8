@@ -79,6 +79,7 @@
             sops
             talhelper
             talosctl
+            vector
             yq
             yq-go
 
