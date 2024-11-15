@@ -14,7 +14,7 @@ let
       {
         targetNamespace = namespace;
         commonMetadata.labels."app.kubernetes.io/name" = name;
-        prune = false; # should never be deleted
+        prune = true;
         sourceRef = import ../../flux-system/source.nix;
         wait = true;
         interval = "30m";
