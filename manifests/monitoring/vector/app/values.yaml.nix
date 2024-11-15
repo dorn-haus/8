@@ -1,7 +1,10 @@
-{
-  # Expose the service externally.
-  # Needed for Talos & Alpine logs forwarding.
-  service.type = "LoadBalancer";
+{self, ...}: {
+  service = {
+    # Expose the service externally.
+    # Needed for Talos & Alpine logs forwarding.
+    type = "LoadBalancer";
+    annotations."lbipam.cilium.io/ips" = self.lib.cluster.network.external.vector;
+  };
 
   autoscaling = {
     enabled = true;
@@ -41,15 +44,17 @@
         };
         batch.max_bytes = batch * 1024;
         out_of_order_action = "rewrite_timestamp";
-        labels = {host_ip = "{{`{{ __host }}`}}";} // labels;
+        labels =
+          {
+            level = "{{`{{ talos-level }}`}}";
+            node_ip = "{{`{{ __host }}`}}";
+          }
+          // labels;
       };
     in {
-      talos_kernel = talos "kernel" 1024 {
-        facility = "{{`{{ facility }}`}}";
-      };
+      talos_kernel = talos "kernel" 1024 {};
       talos_services = talos "services" 256 {
-        service = "{{`{{ talos-service }}`}}";
-        level = "{{`{{ talos-level }}`}}";
+        node = "{{`{{ talos-node }}`}}";
       };
     };
   };

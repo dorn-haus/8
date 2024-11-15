@@ -46,8 +46,9 @@
         {
           machine.logging.destinations = [
             {
-              endpoint = "udp://10.10.0.1:6051/";
+              endpoint = "udp://${cluster.network.external.vector}:6051/";
               format = "json_lines";
+              extraTags.node = node.hostname;
             }
           ];
         }
