@@ -35,5 +35,11 @@ in {
   };
   nodeSelector."kubernetes.io/arch" = "amd64";
 
+  # Persist data across pod restarts.
+  persistence.dataDir = {
+    enabled = true;
+    size = "2Gi"; # 1Gi default
+  };
+
   serviceAnnotations."lbipam.cilium.io/ips" = self.lib.cluster.network.external.minecraft;
 }
