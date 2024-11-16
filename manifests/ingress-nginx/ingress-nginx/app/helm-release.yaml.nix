@@ -16,5 +16,11 @@ in {
       };
       interval = "12h";
     };
+    valuesFrom = [
+      {
+        kind = "ConfigMap";
+        name = "${name}-values";
+      }
+    ];
   };
 }
