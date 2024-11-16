@@ -31,7 +31,7 @@ in {
   # Request a slightly beefier node.
   resources.requests = {
     cpu = "2";
-    memory = "4096Mi";
+    memory = "4Gi";
   };
   nodeSelector."kubernetes.io/arch" = "amd64";
 
@@ -41,5 +41,7 @@ in {
     size = "2Gi"; # 1Gi default
   };
 
+  # Use a pre-defined IP for the service.
+  # This allows NAT-ing the service, making it available on the internet.
   serviceAnnotations."lbipam.cilium.io/ips" = self.lib.cluster.network.external.minecraft;
 }
