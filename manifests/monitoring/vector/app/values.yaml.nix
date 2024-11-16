@@ -54,7 +54,7 @@
     in {
       talos_kernel = talos "kernel" 1024 {};
       talos_services = talos "services" 256 {
-        node = "{{`{{ talos-node }}`}}";
+        node = "{{`{{ node }}`}}";
       };
     };
   };
