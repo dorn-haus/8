@@ -6,7 +6,6 @@ in {
     replicaCount = 2;
     ingressClassResource.default = true;
     service.annotations."lbipam.cilium.io/ips" = self.lib.cluster.network.external.ingress;
+    extraArgs.default-ssl-certificate = "${namespace}/${certificate.spec.secretName}";
   };
-
-  extraArgs.default-ssl-certificate = "${namespace}/${certificate.spec.secretName}";
 }
