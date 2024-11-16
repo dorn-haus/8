@@ -37,8 +37,21 @@
         (optional node.zfs "siderolabs/zfs")
       ];
 
-      extraManifests = [
-        (yaml.write ./manifests/watchdog.yaml.nix {inherit pkgs;})
+      extraManifests = map (src: yaml.write src {inherit pkgs;}) [
+        ./manifests/vector.yaml.nix
+        ./manifests/watchdog.yaml.nix
+      ];
+
+      patches = map yaml.format [
+        {
+          machine.logging.destinations = [
+            {
+              endpoint = "udp://${cluster.network.external.vector}:6051/";
+              format = "json_lines";
+              extraTags.node = node.hostname;
+            }
+          ];
+        }
       ];
     }
     // optionalAttrs node.zfs {

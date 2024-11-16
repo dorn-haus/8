@@ -42,4 +42,16 @@ in {
     # cert_key = "/etc/grafana/grafana.key"
     # cert_file = "/etc/grafana/grafana.crt"
   };
+
+  datasources."datasources.yaml" = {
+    apiVersion = 1;
+    datasources = [
+      {
+        name = "Loki";
+        type = "loki";
+        url = "http://loki:3100";
+      }
+    ];
+    prune = true;
+  };
 }

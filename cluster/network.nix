@@ -36,11 +36,15 @@ in {
     net4Len = 24;
     cidr4 = cidr net4 net4Len;
 
-    ingress = "10.10.10.10";
+    # NAT'd services:
     nat = {
       "80" = ingress;
       "443" = ingress;
     };
+
+    # Named services:
+    ingress = "10.10.10.10";
+    vector = "10.10.0.5";
   };
 
   uplink = let

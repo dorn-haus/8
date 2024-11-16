@@ -5,5 +5,6 @@
     "./namespace.yaml"
     "./grafana/ks.yaml"
     "./loki/ks.yaml"
+    "./vector/ks.yaml"
   ];
 }
