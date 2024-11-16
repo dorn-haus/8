@@ -33,7 +33,7 @@ in {
 
   external = rec {
     net4 = "10.10.0.0";
-    net4Len = 24;
+    net4Len = 16;
     cidr4 = cidr net4 net4Len;
 
     # NAT'd services:
