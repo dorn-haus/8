@@ -7,10 +7,10 @@ in {
   spec = {
     interval = "30m";
     chart.spec = {
-      chart = name;
+      chart = "${name}-bedrock";
       version = "2.8.1";
       sourceRef = {
-        name = "jetstack";
+        inherit name;
         kind = "HelmRepository";
         namespace = "flux-system";
       };
