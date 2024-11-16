@@ -38,12 +38,15 @@ in {
 
     # NAT'd services:
     nat = {
-      "80" = ingress;
-      "443" = ingress;
+      ingress = [80 443];
+      minecraft = [19132];
     };
 
-    # Named services:
-    ingress = "10.10.10.10";
+    # External services:
+    ingress = "10.10.4.43";
+    minecraft = "10.10.19.132";
+
+    # Internal services:
     vector = "10.10.0.5";
   };
 
