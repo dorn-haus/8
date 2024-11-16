@@ -1,5 +1,5 @@
 let
-  name = "ingress-nginx";
+  name = "minecraft";
 in {
   kind = "HelmRelease";
   apiVersion = "helm.toolkit.fluxcd.io/v2";
@@ -7,8 +7,8 @@ in {
   spec = {
     interval = "30m";
     chart.spec = {
-      chart = name;
-      version = "4.11.3";
+      chart = "${name}-bedrock";
+      version = "2.8.1";
       sourceRef = {
         inherit name;
         kind = "HelmRepository";
