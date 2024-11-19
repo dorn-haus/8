@@ -1,11 +1,11 @@
-{pkgs, ...}:
+inputs @ {pkgs, ...}:
 builtins.attrValues (
   builtins.mapAttrs (name: url: {
     kind = "HelmRepository";
     apiVersion = "source.toolkit.fluxcd.io/v1";
     metadata = {
       inherit name;
-      namespace = "flux-system";
+      inherit ((import ./flux-instance.yaml.nix inputs).metadata) namespace;
     };
     spec =
       {
