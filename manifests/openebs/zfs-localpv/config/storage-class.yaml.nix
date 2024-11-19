@@ -10,4 +10,5 @@
     poolname = "zfspv";
   };
   provisioner = "zfs.csi.openebs.io";
+  reclaimPolicy = "Retain";
 }
