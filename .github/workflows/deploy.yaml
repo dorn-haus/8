@@ -1,0 +1,25 @@
+---
+name: Deploy
+
+on:
+  workflow_run:
+    workflows:
+    - Build
+    branches:
+    - main
+    types:
+    - completed
+
+jobs:
+  deploy:
+    name: Production
+    environment: prod
+    if: github.event.workflow_run.conclusion == "success"
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: TODO
+      run: echo todo deploy
+
+    - name: DEBUG
+      run: find .

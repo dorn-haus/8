@@ -1,16 +1,18 @@
 ---
-name: Manifests
+name: Build
 
 on:
   push:
-    branches: ["main"]
+    branches:
+    - main
   pull_request:
-    branches: ["main"]
-
+    branches:
+    - main
   workflow_dispatch:
 
 jobs:
   build:
+    name: Manifests
     runs-on: ubuntu-24.04
 
     steps:
@@ -30,14 +32,3 @@ jobs:
 
     - name: Build manifests archive
       run: nix build
-
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Deploy manifests archive to cluster
-      if: github.ref == "refs/heads/main"
-      run: nix run
