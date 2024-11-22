@@ -36,8 +36,8 @@ jobs:
         nix build --print-out-paths | tee -a $GITHUB_ENV
 
     - name: Detect artifact version
-      uses: proudust/gh-describe@v2
       id: ghd
+      uses: proudust/gh-describe@v2
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
