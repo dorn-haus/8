@@ -9,7 +9,7 @@
       "description": "Cluster dependencies",
       "fileMatch": "cluster/versions\\.nix$",
       "matchStrings": [
-        "(?<depName>\\S+) = \\{(?<datasource>helm) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];\\};"
+        "(?<depName>\\S+) = \\{(?<datasource>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];\\};"
       ],
       "datasourceTemplate": "{{#if (equals (lookup (split registryUrl '://') 0) 'oci')}}docker{{else}}{{{datasource}}}{{/if}}",
       "versioningTemplate": "helm"
