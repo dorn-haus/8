@@ -1,5 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboard": true,
   "nix": {
     "enabled": true
   },
@@ -24,5 +25,11 @@
       "token": "{{ secrets.GHCR_TOKEN }}"
     }
   ],
-  "dependencyDashboard": true
+  "packageRules": [
+    {
+      "description": "Merge GitHub actions updates",
+      "matchManagers": ["github-actions"],
+      "automerge": true
+    }
+  ]
 }
