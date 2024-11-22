@@ -31,4 +31,19 @@ jobs:
       run: nix flake check --impure
 
     - name: Build manifests archive
-      run: nix build
+      run: |
+        echo -n artifact_dir= >> $GITHUB_ENV
+        nix build --print-out-paths | tee -a $GITHUB_ENV
+
+    - name: Detect artifact version
+      id: ghd
+      uses: proudust/gh-describe@v2
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: manifests-${{ steps.ghd.outputs.describe }}
+        path: ${{ env.artifact_dir }}
+        if-no-files-found: error
+        compression-level: 9  # already compressed
+        retention-days: 8
