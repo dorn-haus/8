@@ -12,6 +12,7 @@
         "(?<depName>\\S+) = \\{(?<datasource>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];\\};"
       ],
       "datasourceTemplate": "{{#if (equals (lookup (split registryUrl '://') 0) 'oci')}}docker{{else}}{{{datasource}}}{{/if}}",
+      "extractVersionTemplate": "^v?(?<version>.*)$",
       "versioningTemplate": "helm"
     }
   ],
