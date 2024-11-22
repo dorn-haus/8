@@ -43,7 +43,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: manifests-${{ steps.ghd.outputs.describe }}
-        path: ${{ env.artifact_dir }}/*.tgz
+        path: ${{ env.artifact_dir }}
         if-no-files-found: error
-        compression-level: 0  # already compressed
+        compression-level: 9  # already compressed
         retention-days: 8

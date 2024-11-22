@@ -6,15 +6,13 @@
   inherit (pkgs.lib) getExe getExe';
 
   chmod = getExe' pkgs.coreutils "chmod";
+  cp = getExe' pkgs.coreutils "cp";
   echo = getExe' pkgs.coreutils "echo";
   flux = getExe pkgs.fluxcd;
   helm = getExe pkgs.kubernetes-helm;
   kubectl = getExe' pkgs.kubectl "kubectl";
-  mkdir = getExe' pkgs.coreutils "mkdir";
   nix = getExe pkgs.nix;
   rm = getExe' pkgs.coreutils "rm";
-  sed = getExe pkgs.gnused;
-  tar = getExe pkgs.gnutar;
   xargs = getExe' pkgs.findutils "xargs";
   yq = getExe pkgs.yq;
 
@@ -23,10 +21,8 @@
   build = pkgs.writeShellScript "flux-build" ''
     cd "$DEVENV_ROOT"
     ${rm} --recursive --force "${manifests}"
-    ${mkdir} --parents "${manifests}"
     ${nix} build --print-out-paths |
-      ${sed} "s:$:/manifests.tgz:" |
-      ${xargs} ${tar} --directory "${manifests}" --extract --file
+      ${xargs} -I{} ${cp} --recursive {} "${manifests}"
     ${chmod} +w --recursive "${manifests}"
   '';
   diff = pkgs.writeShellScript "flux-diff" ''

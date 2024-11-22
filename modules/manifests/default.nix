@@ -63,8 +63,10 @@
       phases = ["installPhase"];
       nativeBuildInputs = with pkgs; [fluxcd];
       installPhase = ''
-        mkdir -p "$out"
-        flux build artifact --path="$src" --output="$out/manifests.tgz"
+        temp_tgz="$(mktemp -d)/manifests.tgz"
+        flux build artifact --path="$src" --output="$temp_tgz"
+        mkdir --parents "$out"
+        tar --directory="$out" --file="$temp_tgz" --extract --gzip
       '';
 
       meta = let
@@ -89,18 +91,18 @@
         inherit (pkgs.lib) getExe getExe';
 
         chmod = getExe' pkgs.coreutils "chmod";
+        cp = getExe' pkgs.coreutils "cp";
         flux = getExe pkgs.fluxcd;
         git = getExe pkgs.git;
         mktemp = getExe' pkgs.coreutils "mktemp";
         rm = getExe' pkgs.coreutils "rm";
-        tar = getExe pkgs.gnutar;
 
         artifactURI = with cluster.github; "oci://${registry}/${owner}/${repository}:latest";
       in {
         type = "app";
         program = pkgs.writeShellScriptBin "deploy" ''
           TEMP_DIR="$(${mktemp} --directory)"
-          ${tar} --extract --file="${manifests-oci}/manifests.tgz" --directory="$TEMP_DIR"
+          ${cp} --recursive "${manifests-oci}"/* "$TEMP_DIR"
           ${chmod} --recursive +w "$TEMP_DIR"
           ${flux} push artifact "${artifactURI}" \
             --path="$TEMP_DIR" \
