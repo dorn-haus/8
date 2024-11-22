@@ -57,13 +57,14 @@
     # OCI tar archive containing all manifests, used as build output.
     manifests-oci = pkgs.stdenv.mkDerivation (finalAttrs: {
       pname = "manifests";
-      version = "latest.tgz";
+      version = "latest";
 
       src = manifests-dir;
       phases = ["installPhase"];
       nativeBuildInputs = with pkgs; [fluxcd];
       installPhase = ''
-        flux build artifact --path="$src" --output="$out"
+        mkdir -p "$out"
+        flux build artifact --path="$src" --output="$out/manifests.tgz"
       '';
 
       meta = let
@@ -99,7 +100,7 @@
         type = "app";
         program = pkgs.writeShellScriptBin "push-oci" ''
           TEMP_DIR="$(${mktemp} --directory)"
-          ${tar} --extract --file="${manifests-oci}" --directory="$TEMP_DIR"
+          ${tar} --extract --file="${manifests-oci}/manifests.tgz" --directory="$TEMP_DIR"
           ${chmod} --recursive +w "$TEMP_DIR"
           ${flux} push artifact "${artifactURI}" \
             --path="$TEMP_DIR" \

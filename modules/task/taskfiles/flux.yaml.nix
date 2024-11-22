@@ -13,6 +13,7 @@
   mkdir = getExe' pkgs.coreutils "mkdir";
   nix = getExe pkgs.nix;
   rm = getExe' pkgs.coreutils "rm";
+  sed = getExe pkgs.gnused;
   tar = getExe pkgs.gnutar;
   xargs = getExe' pkgs.findutils "xargs";
   yq = getExe pkgs.yq;
@@ -24,6 +25,7 @@
     ${rm} --recursive --force "${manifests}"
     ${mkdir} --parents "${manifests}"
     ${nix} build --print-out-paths |
+      ${sed} "s:$:/manifests.tgz:" |
       ${xargs} ${tar} --directory "${manifests}" --extract --file
     ${chmod} +w --recursive "${manifests}"
   '';
