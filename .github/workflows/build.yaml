@@ -1,17 +1,19 @@
 ---
-name: Nix
+name: Build
 
 on:
   push:
-    branches: ["main"]
+    branches:
+    - main
   pull_request:
-    branches: ["main"]
-
+    branches:
+    - main
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Manifests
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout
@@ -28,5 +30,5 @@ jobs:
     - name: Check Nix flake
       run: nix flake check --impure
 
-    - name: Build Nix flake (slow)
+    - name: Build manifests archive
       run: nix build
