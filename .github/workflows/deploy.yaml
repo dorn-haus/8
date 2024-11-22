@@ -33,7 +33,7 @@ jobs:
     - name: Detect artifact dir and version
       id: artifact
       run: |
-        dir=manifests-*
+        dir="$(ls -1d manifests-*)"
         echo "dir=${dir}" >> "$GITHUB_OUTPUT"
         echo "version=${dir/manifests-/}" >> "$GITHUB_OUTPUT"
 
