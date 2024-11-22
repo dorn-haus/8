@@ -2,6 +2,7 @@
   perSystem = {pkgs, ...}: let
     inherit (builtins) attrValues filter mapAttrs readDir;
     inherit (pkgs.lib) lists sources strings;
+    inherit (self.lib) cluster;
 
     # Process all files in //manifests that end in .yaml.nix.
     root = sources.sourceFilesBySuffices ../../manifests [".nix"];
@@ -28,6 +29,8 @@
       src = self.lib.yaml.write absPath {
         inherit pkgs;
         name = dst;
+        # Additional manifest params:
+        v = cluster.versions;
       };
     };
 
@@ -67,7 +70,7 @@
         inherit (pkgs) lib;
       in {
         description = "Kubernetes Manifests";
-        homepage = with self.lib.cluster.github; "https://github.com/${owner}/${repository}";
+        homepage = with cluster.github; "https://github.com/${owner}/${repository}";
         license = with lib.licenses; [asl20 mit];
         maintainers = with lib.maintainers; [attila];
       };
@@ -83,7 +86,6 @@
     apps = let
       push-oci = let
         inherit (pkgs.lib) getExe getExe';
-        inherit (self.lib.cluster) github;
 
         chmod = getExe' pkgs.coreutils "chmod";
         flux = getExe pkgs.fluxcd;
@@ -92,7 +94,7 @@
         rm = getExe' pkgs.coreutils "rm";
         tar = getExe pkgs.gnutar;
 
-        artifactURI = with github; "oci://${registry}/${owner}/${repository}:latest";
+        artifactURI = with cluster.github; "oci://${registry}/${owner}/${repository}:latest";
       in {
         type = "app";
         program = pkgs.writeShellScriptBin "push-oci" ''

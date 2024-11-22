@@ -1,4 +1,4 @@
-let
+{v, ...}: let
   name = "local-path-provisioner";
 in {
   kind = "HelmRelease";
@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = "./deploy/chart/${name}";
-      version = "v0.0.30";
+      version = "v${v.${name}}";
       sourceRef = {
         inherit name;
         kind = "GitRepository";

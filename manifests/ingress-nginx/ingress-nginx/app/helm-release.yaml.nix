@@ -1,4 +1,4 @@
-let
+{v, ...}: let
   name = "ingress-nginx";
 in {
   kind = "HelmRelease";
@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "4.11.3";
+      version = v.${name};
       sourceRef = {
         inherit name;
         kind = "HelmRepository";

@@ -148,7 +148,7 @@ in {
       inherit (release.spec.chart.spec) version;
 
       namespace = "kube-system";
-      release = import ../../../manifests/kube-system/cilium/app/helm-release.yaml.nix;
+      release = import ../../../manifests/kube-system/cilium/app/helm-release.yaml.nix {v = cluster.versions;};
     in {
       desc = "Install Cilium";
       status = [

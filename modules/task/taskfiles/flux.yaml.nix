@@ -1,4 +1,8 @@
-{pkgs, ...}: let
+{
+  pkgs,
+  self,
+  ...
+}: let
   inherit (pkgs.lib) getExe getExe';
 
   chmod = getExe' pkgs.coreutils "chmod";
@@ -76,7 +80,7 @@ in {
     install-operator = let
       name = "flux-operator";
       namespace = "flux-system";
-      version = "0.10.0";
+      version = self.lib.cluster.versions.${name};
     in {
       desc = "Install the ${name}";
       status = [

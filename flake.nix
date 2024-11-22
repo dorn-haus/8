@@ -76,6 +76,7 @@
             helmfile
             jq
             kubectl
+            renovate
             sops
             talhelper
             talosctl
@@ -94,6 +95,7 @@
 
           enterShell = ''
             export KUBECONFIG="$DEVENV_STATE/talos/kubeconfig"
+            export RENOVATE_CONFIG_FILE="$DEVENV_ROOT/.github/renovate.json"
             export TALOSCONFIG="$DEVENV_STATE/talos/talosconfig"
             export TALSECRET="$DEVENV_ROOT/talos/talsecret.sops.yaml"
           '';

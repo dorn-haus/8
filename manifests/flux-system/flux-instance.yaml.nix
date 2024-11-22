@@ -1,13 +1,19 @@
-{self, ...}: {
+{
+  self,
+  v,
+  ...
+}: let
+  name = "flux";
+in {
   kind = "FluxInstance";
   apiVersion = "fluxcd.controlplane.io/v1";
   metadata = {
-    name = "flux";
+    inherit name;
     namespace = "flux-system";
   };
   spec = {
     distribution = {
-      version = "2.4.0";
+      version = v.${name};
       registry = "ghcr.io/fluxcd";
       artifact = "oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests";
     };
