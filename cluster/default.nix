@@ -12,6 +12,7 @@
   };
 
   network = import ./network.nix {inherit self;};
+  versions = import ./versions.nix;
 
   nodes = let
     inherit (builtins) filter listToAttrs;

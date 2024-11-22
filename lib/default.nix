@@ -5,7 +5,6 @@ inputs: {
   hex = import ./hex.nix inputs;
   nodes = import ./nodes.nix inputs;
   yaml = import ./yaml.nix inputs;
-  versions = import ./versions.nix;
 
   cidr = net: len: "${net}/${toString len}";
 }
