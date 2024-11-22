@@ -85,7 +85,7 @@
     };
 
     apps = let
-      push-oci = let
+      deploy = let
         inherit (pkgs.lib) getExe getExe';
 
         chmod = getExe' pkgs.coreutils "chmod";
@@ -98,7 +98,7 @@
         artifactURI = with cluster.github; "oci://${registry}/${owner}/${repository}:latest";
       in {
         type = "app";
-        program = pkgs.writeShellScriptBin "push-oci" ''
+        program = pkgs.writeShellScriptBin "deploy" ''
           TEMP_DIR="$(${mktemp} --directory)"
           ${tar} --extract --file="${manifests-oci}/manifests.tgz" --directory="$TEMP_DIR"
           ${chmod} --recursive +w "$TEMP_DIR"
@@ -111,8 +111,8 @@
         '';
       };
     in {
-      inherit push-oci;
-      default = push-oci;
+      inherit deploy;
+      default = deploy;
     };
   };
 }
