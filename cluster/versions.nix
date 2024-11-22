@@ -1,6 +1,6 @@
 {
   cert-manager = {helm = ["https://charts.jetstack.io" "1.16.1"];};
-  cilium = {helm = ["https://helm.cilium.io" "1.16.3"];};
+  cilium = {helm = ["https://helm.cilium.io" "1.16.4"];};
   flux = {github-releases = ["https://github.com/fluxcd/flux2" "2.4.0"];};
   flux-operator = {helm = ["oci://ghcr.io/controlplaneio-fluxcd/charts" "0.10.0"];};
   grafana = {helm = ["https://grafana.github.io/helm-charts" "8.5.12"];};
