@@ -14,7 +14,7 @@ permissions:
   packages: write # for ghcr.io access
 
 env:
-  OCI_REPO: oci://ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}
+  OCI_REPO: oci://ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   deploy:
@@ -30,9 +30,12 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: DEBUG 0
+    - name: Detect artifact dir and version
+      id: artifact
       run: |
-        find .
+        dir=manifests-*
+        echo "dir=${dir}" >> "$GITHUB_OUTPUT"
+        echo "version=${dir/manifests-/}" >> "$GITHUB_OUTPUT"
 
     - name: Install Flux
       uses: fluxcd/flux2/action@main
@@ -41,22 +44,17 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
+        username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Detect manifests version
-      id: ghd
-      uses: proudust/gh-describe@v2
-
-    - name: DEBUG 1
+    - name: Push Kubernetes manifests
       run: |
-        echo "TODO:"
-        echo flux push artifact "$OCI_REPO:${{ steps.ghd.outputs.describe }}" \
+        flux push artifact "$OCI_REPO:${{ steps.artifact.outputs.version }}" \
           --path=. \
-          --source="$(${git} config --get remote.origin.url)" \
-          --revision="${{ steps.ghd.outputs.sha }}" \
+          --source="${{ github.repositoryUrl }}" \
+          --revision="${{ github.ref_name }}@sha1:${{ github.sha }}" \
           --reproducible
 
-    - name: DEBUG 2
+    - name: Deploy Kubernetes manifests to prod
       run: |
-        find .
+        flux tag artifact $OCI_REPO:${{ steps.artifact.outputs.version }} --tag latest

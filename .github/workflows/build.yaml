@@ -31,9 +31,10 @@ jobs:
       run: nix flake check --impure
 
     - name: Build manifests archive
+      id: build
       run: |
-        echo -n artifact_dir= >> $GITHUB_ENV
-        nix build --print-out-paths | tee -a $GITHUB_ENV
+        echo -n artifact_dir= >> "$GITHUB_OUTPUT"
+        nix build --print-out-paths | tee -a "$GITHUB_OUTPUT"
 
     - name: Detect artifact version
       id: ghd
@@ -43,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: manifests-${{ steps.ghd.outputs.describe }}
-        path: ${{ env.artifact_dir }}
+        path: ${{ steps.build.outputs.artifact_dir }}
         if-no-files-found: error
-        compression-level: 9  # already compressed
+        compression-level: 9
         retention-days: 8
