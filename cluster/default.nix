@@ -1,7 +1,10 @@
 {
   self,
   lib,
-}: {
+}: let
+  inherit (builtins) attrValues elemAt filter head mapAttrs listToAttrs;
+  inherit (lib.lists) unique;
+in {
   name = "locker";
   domain = "dorn.haus";
 
@@ -12,12 +15,8 @@
   };
 
   network = import ./network.nix {inherit self;};
-  versions = import ./versions.nix;
 
   nodes = let
-    inherit (builtins) filter listToAttrs;
-    inherit (lib.lists) unique;
-
     all = self.lib.nodes ./nodes;
     byOS = os: {
       name = os;
@@ -30,4 +29,6 @@
       os = listToAttrs (map byOS (unique (map ({os, ...}: os) all)));
     };
   };
+
+  versions = mapAttrs (name: value: elemAt (head (attrValues value)) 1) (import ./versions.nix);
 }
