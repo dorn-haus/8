@@ -15,7 +15,7 @@ permissions:
   contents: read # also for ghcr.io
 
 env:
-  OCI_REPO: oci://ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+  OCI_REPO: oci://ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}
 
 jobs:
   deploy:
@@ -45,7 +45,7 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: ${{ github.repository_owner }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push Kubernetes manifests
