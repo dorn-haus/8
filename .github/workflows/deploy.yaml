@@ -12,6 +12,7 @@ on:
 
 permissions:
   packages: write # for ghcr.io access
+  contents: read # also for ghcr.io
 
 env:
   OCI_REPO: oci://ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
