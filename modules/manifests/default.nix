@@ -107,7 +107,7 @@
           ${flux} push artifact "${artifactURI}" \
             --path="$TEMP_DIR" \
             --source="$(${git} config --get remote.origin.url)" \
-            --revision="$(${git} describe --dirty)" \
+            --revision="$(${git} rev-parse --abbrev-ref HEAD)@sha1:$(${git} rev-parse HEAD)" \
             --reproducible
           ${rm} --recursive --force "$TEMP_DIR"
         '';
