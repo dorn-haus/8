@@ -1,4 +1,4 @@
-let
+{v, ...}: let
   name = "grafana";
 in {
   kind = "HelmRelease";
@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "8.5.12";
+      version = v.${name};
       sourceRef = {
         inherit name;
         kind = "HelmRepository";

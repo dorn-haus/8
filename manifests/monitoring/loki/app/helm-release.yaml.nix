@@ -1,4 +1,4 @@
-let
+{v, ...}: let
   name = "loki";
 in {
   kind = "HelmRelease";
@@ -8,7 +8,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "6.19.0";
+      version = v.${name};
       sourceRef = {
         name = "grafana";
         kind = "HelmRepository";

@@ -28,6 +28,8 @@
       src = self.lib.yaml.write absPath {
         inherit pkgs;
         name = dst;
+        # Additional manifest params:
+        v = self.lib.versions;
       };
     };
 

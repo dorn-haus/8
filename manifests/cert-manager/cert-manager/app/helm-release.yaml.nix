@@ -1,4 +1,4 @@
-let
+{v, ...}: let
   name = "cert-manager";
   crds = "CreateReplace";
 in {
@@ -9,7 +9,7 @@ in {
     interval = "30m";
     chart.spec = {
       chart = name;
-      version = "1.16.1";
+      version = v.${name};
       sourceRef = {
         name = "jetstack";
         kind = "HelmRepository";
