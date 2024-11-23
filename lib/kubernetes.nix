@@ -33,12 +33,12 @@ in {
     namespace = detectNamespace dir;
     hasConfig = ((readDir dir).config or null) != null;
     manifestPath = dir: "./${namespace}/${name}/${dir}";
-    template = name: spec:
+    template = ksname: spec:
       recursiveUpdate {
         kind = "Kustomization";
         apiVersion = "kustomize.toolkit.fluxcd.io/v1";
         metadata = {
-          inherit name;
+          name = ksname;
           namespace = "flux-system";
         };
         spec =
