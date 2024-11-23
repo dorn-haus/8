@@ -80,7 +80,6 @@ in {
         spec =
           recursiveUpdate {
             targetNamespace = namespace;
-            # TODO: This should be the outer "name"!
             commonMetadata.labels."app.kubernetes.io/name" = name;
             prune = true;
             sourceRef = {
