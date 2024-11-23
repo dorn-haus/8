@@ -1,5 +1,1 @@
-{
-  kind = "Namespace";
-  apiVersion = "v1";
-  metadata.name = "ingress-nginx";
-}
+{k, ...}: k.namespace ./. {}

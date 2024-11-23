@@ -1,5 +1,1 @@
-{
-  kind = "Namespace";
-  apiVersion = "v1";
-  metadata.name = "default";
-}
+{k, ...}: k.namespace ./. {}
