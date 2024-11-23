@@ -1,10 +1,16 @@
-{lib, ...}: let
-  inherit (builtins) attrValues baseNameOf dirOf filter mapAttrs readDir;
-  inherit (lib.attrsets) recursiveUpdate;
+{
+  lib,
+  self,
+  ...
+}: let
+  inherit (builtins) attrNames attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (lib.attrsets) filterAttrs recursiveUpdate;
   inherit (lib.lists) subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
+  inherit (self.lib.cluster) versions;
 
-  detectNamespace = dir: baseNameOf (dirOf dir);
+  flux.namespace = "flux-system";
+  parentDirName = dir: baseNameOf (dirOf dir);
 in {
   namespace = dir: overrides:
     recursiveUpdate {
@@ -64,44 +70,97 @@ in {
     ];
   };
 
-  fluxcd.kustomization = dir: overrides: let
-    name = baseNameOf dir;
-    namespace = detectNamespace dir;
-    hasConfig = ((readDir dir).config or null) == "directory";
-    manifestPath = dir: "./${namespace}/${name}/${dir}";
-    template = ksname: spec:
-      recursiveUpdate {
-        kind = "Kustomization";
-        apiVersion = "kustomize.toolkit.fluxcd.io/v1";
-        metadata = {
-          name = ksname;
-          namespace = "flux-system";
-        };
-        spec =
-          recursiveUpdate {
-            targetNamespace = namespace;
-            commonMetadata.labels."app.kubernetes.io/name" = name;
-            prune = true;
-            sourceRef = {
-              kind = "OCIRepository";
-              name = "flux-system";
-            };
-            wait = true;
-            interval = "30m";
-            retryInterval = "1m";
-            timeout = "5m";
-          }
-          spec;
-      }
-      overrides;
+  fluxcd = {
+    kustomization = dir: overrides: let
+      name = baseNameOf dir;
+      namespace = parentDirName dir;
+      hasConfig = ((readDir dir).config or null) == "directory";
+      manifestPath = dir: "./${namespace}/${name}/${dir}";
+      template = ksname: spec:
+        recursiveUpdate {
+          kind = "Kustomization";
+          apiVersion = "kustomize.toolkit.fluxcd.io/v1";
+          metadata = {
+            inherit (flux) namespace;
+            name = ksname;
+          };
+          spec =
+            recursiveUpdate {
+              targetNamespace = namespace;
+              commonMetadata.labels."app.kubernetes.io/name" = name;
+              prune = true;
+              sourceRef = {
+                kind = "OCIRepository";
+                name = flux.namespace;
+              };
+              wait = true;
+              interval = "30m";
+              retryInterval = "1m";
+              timeout = "5m";
+            }
+            spec;
+        }
+        overrides;
 
-    app = template name {path = manifestPath "app";};
-    config = template "${name}-config" {
-      path = manifestPath "config";
-      dependsOn = [app.metadata];
-    };
-  in
-    if hasConfig
-    then [app config]
-    else app;
+      app = template name {path = manifestPath "app";};
+      config = template "${name}-config" {
+        path = manifestPath "config";
+        dependsOn = [app.metadata];
+      };
+    in
+      if hasConfig
+      then [app config]
+      else app;
+
+    helm-release = dir: overrides @ {v ? false, ...}: let
+      name = parentDirName dir;
+      crds = "CreateReplace";
+      pchart = overrides.chart or name;
+      pv =
+        if v
+        then "v"
+        else "";
+    in
+      recursiveUpdate {
+        kind = "HelmRelease";
+        apiVersion = "helm.toolkit.fluxcd.io/v2";
+        metadata = {inherit name;};
+        spec =
+          {
+            interval = "30m";
+            chart.spec = {
+              chart = pchart;
+              version = "${pv}${versions.${pchart}}";
+              sourceRef = {
+                inherit name; # todo!
+                inherit (flux) namespace;
+                kind = "HelmRepository";
+              };
+              interval = "12h";
+            };
+            install = {
+              inherit crds;
+              remediation.retries = 2;
+            };
+            upgrade = {
+              inherit crds;
+              cleanupOnFail = true;
+              remediation.retries = 2;
+            };
+          }
+          // ( # helm chart values
+            if ((readDir dir)."values.yaml.nix" or null) == "regular"
+            then {
+              valuesFrom = [
+                {
+                  kind = "ConfigMap";
+                  name = "${baseNameOf (dirOf dir)}-values";
+                }
+              ];
+            }
+            else {}
+          );
+      }
+      (filterAttrs (name: value: !(elem name ["chart" "v"])) overrides);
+  };
 }
