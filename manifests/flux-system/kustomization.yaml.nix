@@ -1,6 +1,5 @@
-{
-  kind = "Kustomization";
-  apiVersion = "kustomize.config.k8s.io/v1beta1";
+{k, ...}:
+k.kustomization ./. {
   resources = [
     "flux-instance.yaml"
     "git-repository.yaml"
