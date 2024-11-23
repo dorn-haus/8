@@ -3,7 +3,7 @@
   self,
   ...
 }: let
-  inherit (builtins) attrNames attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
   inherit (lib.lists) subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
