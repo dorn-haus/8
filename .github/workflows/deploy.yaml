@@ -10,11 +10,6 @@ on:
     types:
     - completed
 
-# Temporarily enable all permissions.
-# permissions:
-#   packages: write # for ghcr.io access
-#   contents: read # also for ghcr.io
-
 env:
   OCI_REPO: oci://ghcr.io/${{ github.actor }}/${{ github.event.repository.name }}
 
@@ -47,6 +42,7 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
+        # Token is set explicitly for the prod environment only.
         password: ${{ secrets.GHCR_TOKEN }}
 
     - name: Push Kubernetes manifests
