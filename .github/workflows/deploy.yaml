@@ -52,7 +52,7 @@ jobs:
     - name: Push Kubernetes manifests
       run: |
         flux push artifact "$OCI_REPO:${{ steps.artifact.outputs.version }}" \
-          --path=. \
+          --path="${{ steps.artifact.outputs.dir }}" \
           --source="${{ github.repositoryUrl }}" \
           --revision="${{ github.ref_name }}@sha1:${{ github.sha }}" \
           --reproducible
