@@ -49,6 +49,21 @@ in {
       ))
     overrides;
 
+  kustomizeconfig = {
+    nameReference = [
+      {
+        kind = "ConfigMap";
+        version = "v1";
+        fieldSpecs = [
+          {
+            path = "spec/valuesFrom/name";
+            kind = "HelmRelease";
+          }
+        ];
+      }
+    ];
+  };
+
   fluxcd.kustomization = dir: overrides: let
     name = baseNameOf dir;
     namespace = detectNamespace dir;
