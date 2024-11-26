@@ -3,6 +3,7 @@ inputs: {
 
   eui64 = import ./eui64.nix inputs;
   hex = import ./hex.nix inputs;
+  kubernetes = import ./kubernetes.nix inputs;
   nodes = import ./nodes.nix inputs;
   yaml = import ./yaml.nix inputs;
 

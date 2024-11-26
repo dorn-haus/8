@@ -1,14 +1,1 @@
-{
-  nameReference = [
-    {
-      kind = "ConfigMap";
-      version = "v1";
-      fieldSpecs = [
-        {
-          path = "spec/valuesFrom/name";
-          kind = "HelmRelease";
-        }
-      ];
-    }
-  ];
-}
+{k, ...}: k.kustomizeconfig

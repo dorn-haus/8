@@ -30,6 +30,7 @@
         inherit pkgs;
         name = dst;
         # Additional manifest params:
+        k = self.lib.kubernetes;
         v = cluster.versions;
       };
     };
