@@ -1,8 +1,5 @@
 {k, ...}:
-k.external-secret ./. rec {
-  metadata.name = "cloudflare-api-token";
-  spec.target = {
-    inherit (metadata) name;
-    template.data.api-token = "{{ .cloudflare_api_token }}";
-  };
+k.external-secret ./. {
+  name = "cloudflare-api-token";
+  data.api-token = "{{ .cloudflare_api_token }}";
 }

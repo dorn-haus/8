@@ -7,7 +7,7 @@
   inherit (self.lib) cluster yaml;
 in
   k.external-secret ./. {
-    spec.target.template.data."values.yaml" = yaml.format {
+    data."values.yaml" = yaml.format {
       image.tag = "v${v.inadyn-app}";
       inadynConfig = ''
         period = 480

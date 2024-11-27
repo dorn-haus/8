@@ -148,10 +148,14 @@ in {
             remediation.retries = 2;
           };
           valuesFrom = let
+            names = {
+              ConfigMap = "${name}-values";
+              Secret = "${name}-secrets";
+            };
             has = name: ((readDir dir)."${name}.yaml.nix" or null) == "regular";
             from = kind: {
               inherit kind;
-              name = "${name}-values";
+              name = names.${kind};
             };
           in
             flatten [
@@ -163,13 +167,18 @@ in {
       (filterAttrs (name: value: !(elem name ["chart" "v"])) overrides);
   };
 
-  external-secret = dir: overrides: let
-    name = "${parentDirName dir}-values";
-  in
-    recursiveUpdate {
+  external-secret = dir: overrides @ {
+    data,
+    name ? null,
+  }:
+    recursiveUpdate
+    rec {
       kind = "ExternalSecret";
       apiVersion = "external-secrets.io/v1beta1";
-      metadata = {inherit name;};
+      metadata.name =
+        if name == null
+        then "${parentDirName dir}-secrets"
+        else name;
       spec = {
         refreshInterval = "2h";
         secretStoreRef = {
@@ -177,14 +186,14 @@ in {
           name = "gcp-secrets";
         };
         target = {
-          inherit name;
+          inherit (metadata) name;
           template = {
+            inherit data;
             engineVersion = "v2";
-            inherit (overrides.spec.target.template) data;
           };
         };
         dataFrom = [{extract.key = "external-secrets";}];
       };
     }
-    overrides;
+    (filterAttrs (name: value: !(elem name ["data" "name"])) overrides);
 }
