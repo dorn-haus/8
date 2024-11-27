@@ -12,7 +12,7 @@
   ingress-nginx = {helm = ["https://kubernetes.github.io/ingress-nginx" "4.11.3"];};
   kubernetes = {github-releases = ["https://github.com/kubernetes/kubernetes" "1.31.2"];};
   local-path-provisioner = {github-releases = ["https://github.com/rancher/local-path-provisioner" "0.0.30"];};
-  loki = {helm = ["https://grafana.github.io/helm-charts" "6.19.0"];};
+  loki = {helm = ["https://grafana.github.io/helm-charts" "6.22.0"];};
   minecraft-bedrock = {helm = ["https://itzg.github.io/minecraft-server-charts" "2.8.1"];};
   spegel = {helm = ["oci://ghcr.io/spegel-org/helm-charts" "0.0.27"];};
   talos = {github-releases = ["https://github.com/siderolabs/talos" "1.8.2"];};
