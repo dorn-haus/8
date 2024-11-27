@@ -4,6 +4,7 @@
   ...
 }: let
   inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (lib) optionals;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
   inherit (lib.lists) flatten subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
@@ -125,41 +126,39 @@ in {
         kind = "HelmRelease";
         apiVersion = "helm.toolkit.fluxcd.io/v2";
         metadata = {inherit name;};
-        spec =
-          {
-            interval = "30m";
-            chart.spec = {
-              chart = pchart;
-              version = "${pv}${versions.${pchart}}";
-              sourceRef = {
-                inherit name; # todo!
-                inherit (flux) namespace;
-                kind = "HelmRepository";
-              };
-              interval = "12h";
+        spec = {
+          interval = "30m";
+          chart.spec = {
+            chart = pchart;
+            version = "${pv}${versions.${pchart}}";
+            sourceRef = {
+              inherit name; # todo!
+              inherit (flux) namespace;
+              kind = "HelmRepository";
             };
-            install = {
-              inherit crds;
-              remediation.retries = 2;
+            interval = "12h";
+          };
+          install = {
+            inherit crds;
+            remediation.retries = 2;
+          };
+          upgrade = {
+            inherit crds;
+            cleanupOnFail = true;
+            remediation.retries = 2;
+          };
+          valuesFrom = let
+            has = name: ((readDir dir)."${name}.yaml.nix" or null) == "regular";
+            from = kind: {
+              inherit kind;
+              name = "${name}-values";
             };
-            upgrade = {
-              inherit crds;
-              cleanupOnFail = true;
-              remediation.retries = 2;
-            };
-          }
-          // ( # helm chart values
-            if ((readDir dir)."values.yaml.nix" or null) == "regular"
-            then {
-              valuesFrom = [
-                {
-                  kind = "ConfigMap";
-                  name = "${baseNameOf (dirOf dir)}-values";
-                }
-              ];
-            }
-            else {}
-          );
+          in
+            flatten [
+              (optionals (has "values") (from "ConfigMap"))
+              (optionals (has "external-secret") (from "Secret"))
+            ];
+        };
       }
       (filterAttrs (name: value: !(elem name ["chart" "v"])) overrides);
   };
