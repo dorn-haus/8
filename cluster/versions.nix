@@ -1,9 +1,13 @@
 {
+  # TODO:
+  # cert-manager.helm = [todo]...
   cert-manager = {helm = ["https://charts.jetstack.io" "1.16.2"];};
   cilium = {helm = ["https://helm.cilium.io" "1.16.4"];};
   flux = {github-releases = ["https://github.com/fluxcd/flux2" "2.4.0"];};
   flux-operator = {helm = ["oci://ghcr.io/controlplaneio-fluxcd/charts" "0.10.0"];};
   grafana = {helm = ["https://grafana.github.io/helm-charts" "8.6.2"];};
+  inadyn = {helm = ["https://charts.philippwaller.com" "1.1.0"];};
+  inadyn-app = {github-releases = ["https://github.com/troglobit/inadyn" "2.12.0"];};
   ingress-nginx = {helm = ["https://kubernetes.github.io/ingress-nginx" "4.11.3"];};
   kubernetes = {github-releases = ["https://github.com/kubernetes/kubernetes" "1.31.2"];};
   local-path-provisioner = {github-releases = ["https://github.com/rancher/local-path-provisioner" "0.0.30"];};
