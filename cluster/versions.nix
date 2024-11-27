@@ -3,6 +3,7 @@
   # cert-manager.helm = [todo]...
   cert-manager = {helm = ["https://charts.jetstack.io" "1.16.2"];};
   cilium = {helm = ["https://helm.cilium.io" "1.16.4"];};
+  external-secrets = {helm = ["https://charts.external-secrets.io" "0.10.7"];};
   flux = {github-releases = ["https://github.com/fluxcd/flux2" "2.4.0"];};
   flux-operator = {helm = ["oci://ghcr.io/controlplaneio-fluxcd/charts" "0.10.0"];};
   grafana = {helm = ["https://grafana.github.io/helm-charts" "8.6.2"];};

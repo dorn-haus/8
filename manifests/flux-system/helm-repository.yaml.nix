@@ -20,6 +20,7 @@ builtins.attrValues (
   })
   {
     cilium = "https://helm.cilium.io";
+    external-secrets = "https://charts.external-secrets.io";
     grafana = "https://grafana.github.io/helm-charts";
     ingress-nginx = "https://kubernetes.github.io/ingress-nginx";
     jetstack = "https://charts.jetstack.io";
