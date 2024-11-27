@@ -5,7 +5,7 @@
 }: let
   inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
-  inherit (lib.lists) subtractLists;
+  inherit (lib.lists) flatten subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
   inherit (self.lib.cluster) versions;
 
@@ -21,38 +21,38 @@ in {
     overrides;
 
   kustomization = dir: overrides:
-    recursiveUpdate ({
-        kind = "Kustomization";
-        apiVersion = "kustomize.config.k8s.io/v1beta1";
-        resources =
-          subtractLists [
-            "kustomization.yaml" # exclude self
-            "kustomizeconfig.yaml" # configuration
-            "values.yaml" # helm chart values
-          ] (filter (item: item != null) (attrValues (mapAttrs (
-            name: type:
-              if type == "directory"
-              then "${name}/ks.yaml" # app subdirectory
-              else if (hasSuffix ".yaml.nix" name)
-              then removeSuffix ".nix" name # non-flux manifest
-              else null
-          ) (readDir dir))));
-      }
-      // ( # helm chart values generator
+    recursiveUpdate {
+      kind = "Kustomization";
+      apiVersion = "kustomize.config.k8s.io/v1beta1";
+      resources =
+        subtractLists [
+          "kustomization.yaml" # exclude self
+          "kustomizeconfig.yaml" # configuration
+          "values.yaml" # helm chart values
+        ] (filter (item: item != null) (attrValues (mapAttrs (
+          name: type:
+            if type == "directory"
+            then "${name}/ks.yaml" # app subdirectory
+            else if (hasSuffix ".yaml.nix" name)
+            then removeSuffix ".nix" name # non-flux manifest
+            else null
+        ) (readDir dir))));
+      configMapGenerator =
         if ((readDir dir)."values.yaml.nix" or null) == "regular"
-        then let
-          name = baseNameOf (dirOf dir);
-        in {
-          configMapGenerator = [
-            {
-              name = "${name}-values";
-              files = ["./values.yaml"];
-            }
-          ];
-          configurations = ["./kustomizeconfig.yaml"];
-        }
-        else {}
-      ))
+        then [
+          {
+            name = "${parentDirName dir}-values";
+            files = ["./values.yaml"];
+          }
+        ]
+        else [];
+      configurations = flatten (map (config:
+        if ((readDir dir)."${config}.nix" or null) == "regular"
+        then ["./${config}"]
+        else []) [
+        "kustomizeconfig.yaml"
+      ]);
+    }
     overrides;
 
   kustomizeconfig = {

@@ -28,7 +28,6 @@
       inherit dst;
       src = self.lib.yaml.write absPath {
         inherit pkgs;
-        inherit (self.lib) cluster;
         name = dst;
         # Additional manifest params:
         k = self.lib.kubernetes;

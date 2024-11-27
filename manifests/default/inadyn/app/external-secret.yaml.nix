@@ -1,9 +1,9 @@
 {
-  cluster,
   v,
   self,
   ...
 }: let
+  inherit (self.lib) cluster;
   name = "${baseNameOf (dirOf ./.)}-values";
 in {
   kind = "ExternalSecret";
