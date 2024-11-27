@@ -170,6 +170,7 @@ in {
   external-secret = dir: overrides @ {
     data,
     name ? null,
+    ...
   }:
     recursiveUpdate
     rec {
