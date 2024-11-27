@@ -4,8 +4,9 @@
   ...
 }: let
   inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (lib) optionals;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
-  inherit (lib.lists) subtractLists;
+  inherit (lib.lists) flatten subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
   inherit (self.lib.cluster) versions;
 
@@ -21,38 +22,38 @@ in {
     overrides;
 
   kustomization = dir: overrides:
-    recursiveUpdate ({
-        kind = "Kustomization";
-        apiVersion = "kustomize.config.k8s.io/v1beta1";
-        resources =
-          subtractLists [
-            "kustomization.yaml" # exclude self
-            "kustomizeconfig.yaml" # configuration
-            "values.yaml" # helm chart values
-          ] (filter (item: item != null) (attrValues (mapAttrs (
-            name: type:
-              if type == "directory"
-              then "${name}/ks.yaml" # app subdirectory
-              else if (hasSuffix ".yaml.nix" name)
-              then removeSuffix ".nix" name # non-flux manifest
-              else null
-          ) (readDir dir))));
-      }
-      // ( # helm chart values generator
+    recursiveUpdate {
+      kind = "Kustomization";
+      apiVersion = "kustomize.config.k8s.io/v1beta1";
+      resources =
+        subtractLists [
+          "kustomization.yaml" # exclude self
+          "kustomizeconfig.yaml" # configuration
+          "values.yaml" # helm chart values
+        ] (filter (item: item != null) (attrValues (mapAttrs (
+          name: type:
+            if type == "directory"
+            then "${name}/ks.yaml" # app subdirectory
+            else if (hasSuffix ".yaml.nix" name)
+            then removeSuffix ".nix" name # non-flux manifest
+            else null
+        ) (readDir dir))));
+      configMapGenerator =
         if ((readDir dir)."values.yaml.nix" or null) == "regular"
-        then let
-          name = baseNameOf (dirOf dir);
-        in {
-          configMapGenerator = [
-            {
-              name = "${name}-values";
-              files = ["./values.yaml"];
-            }
-          ];
-          configurations = ["./kustomizeconfig.yaml"];
-        }
-        else {}
-      ))
+        then [
+          {
+            name = "${parentDirName dir}-values";
+            files = ["./values.yaml"];
+          }
+        ]
+        else [];
+      configurations = flatten (map (config:
+        if ((readDir dir)."${config}.nix" or null) == "regular"
+        then ["./${config}"]
+        else []) [
+        "kustomizeconfig.yaml"
+      ]);
+    }
     overrides;
 
   kustomizeconfig = {
@@ -125,42 +126,75 @@ in {
         kind = "HelmRelease";
         apiVersion = "helm.toolkit.fluxcd.io/v2";
         metadata = {inherit name;};
-        spec =
-          {
-            interval = "30m";
-            chart.spec = {
-              chart = pchart;
-              version = "${pv}${versions.${pchart}}";
-              sourceRef = {
-                inherit name; # todo!
-                inherit (flux) namespace;
-                kind = "HelmRepository";
-              };
-              interval = "12h";
+        spec = {
+          interval = "30m";
+          chart.spec = {
+            chart = pchart;
+            version = "${pv}${versions.${pchart}}";
+            sourceRef = {
+              inherit name; # todo!
+              inherit (flux) namespace;
+              kind = "HelmRepository";
             };
-            install = {
-              inherit crds;
-              remediation.retries = 2;
+            interval = "12h";
+          };
+          install = {
+            inherit crds;
+            remediation.retries = 2;
+          };
+          upgrade = {
+            inherit crds;
+            cleanupOnFail = true;
+            remediation.retries = 2;
+          };
+          valuesFrom = let
+            names = {
+              ConfigMap = "${name}-values";
+              Secret = "${name}-secrets";
             };
-            upgrade = {
-              inherit crds;
-              cleanupOnFail = true;
-              remediation.retries = 2;
+            has = name: ((readDir dir)."${name}.yaml.nix" or null) == "regular";
+            from = kind: {
+              inherit kind;
+              name = names.${kind};
             };
-          }
-          // ( # helm chart values
-            if ((readDir dir)."values.yaml.nix" or null) == "regular"
-            then {
-              valuesFrom = [
-                {
-                  kind = "ConfigMap";
-                  name = "${baseNameOf (dirOf dir)}-values";
-                }
-              ];
-            }
-            else {}
-          );
+          in
+            flatten [
+              (optionals (has "values") (from "ConfigMap"))
+              (optionals (has "external-secret") (from "Secret"))
+            ];
+        };
       }
       (filterAttrs (name: value: !(elem name ["chart" "v"])) overrides);
   };
+
+  external-secret = dir: overrides @ {
+    data,
+    name ? null,
+    ...
+  }:
+    recursiveUpdate
+    rec {
+      kind = "ExternalSecret";
+      apiVersion = "external-secrets.io/v1beta1";
+      metadata.name =
+        if name == null
+        then "${parentDirName dir}-secrets"
+        else name;
+      spec = {
+        refreshInterval = "2h";
+        secretStoreRef = {
+          kind = "ClusterSecretStore";
+          name = "gcp-secrets";
+        };
+        target = {
+          inherit (metadata) name;
+          template = {
+            inherit data;
+            engineVersion = "v2";
+          };
+        };
+        dataFrom = [{extract.key = "external-secrets";}];
+      };
+    }
+    (filterAttrs (name: value: !(elem name ["data" "name"])) overrides);
 }
