@@ -24,6 +24,7 @@ builtins.attrValues (
     ingress-nginx = "https://kubernetes.github.io/ingress-nginx";
     jetstack = "https://charts.jetstack.io";
     minecraft = "https://itzg.github.io/minecraft-server-charts";
+    philippwaller = "https://charts.philippwaller.com";
     spegel = "oci://ghcr.io/spegel-org/helm-charts";
     vector = "https://helm.vector.dev";
     zfs-localpv = "https://openebs.github.io/zfs-localpv";
