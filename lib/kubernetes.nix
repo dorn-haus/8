@@ -162,4 +162,29 @@ in {
       }
       (filterAttrs (name: value: !(elem name ["chart" "v"])) overrides);
   };
+
+  external-secret = dir: overrides: let
+    name = "${parentDirName dir}-values";
+  in
+    recursiveUpdate {
+      kind = "ExternalSecret";
+      apiVersion = "external-secrets.io/v1beta1";
+      metadata = {inherit name;};
+      spec = {
+        refreshInterval = "2h";
+        secretStoreRef = {
+          kind = "ClusterSecretStore";
+          name = "gcp-secrets";
+        };
+        target = {
+          inherit name;
+          template = {
+            engineVersion = "v2";
+            inherit (overrides.spec.target.template) data;
+          };
+        };
+        dataFrom = [{extract.key = "external-secrets";}];
+      };
+    }
+    overrides;
 }
