@@ -2,9 +2,9 @@
   self,
   lib,
 }: let
-  inherit (builtins) attrValues elemAt filter head mapAttrs listToAttrs;
+  inherit (builtins) elemAt filter length mapAttrs listToAttrs;
   inherit (lib.lists) unique;
-in {
+in rec {
   name = "locker";
   domain = "dorn.haus";
 
@@ -30,5 +30,17 @@ in {
     };
   };
 
-  versions = mapAttrs (name: value: elemAt (head (attrValues value)) 1) (import ./versions.nix);
+  versions = mapAttrs (project: datasources:
+    mapAttrs (
+      datasource: row: let
+        v = elemAt row 1;
+        transform = (length row) > 2;
+      in
+        if transform
+        then (elemAt row 2) v
+        else v
+    )
+    datasources)
+  versions-data;
+  versions-data = import ./versions.nix;
 }

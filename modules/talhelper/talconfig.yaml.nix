@@ -59,8 +59,8 @@
     };
 in {
   clusterName = cluster.name;
-  talosVersion = with cluster.versions; "v${talos}";
-  kubernetesVersion = with cluster.versions; "v${kubernetes}";
+  talosVersion = cluster.versions.talos.github-releases;
+  kubernetesVersion = cluster.versions.kubernetes.github-releases;
   endpoint = "https://${(head cluster.nodes.by.controlPlane).ipv4}:6443";
 
   # Allow running jobs on control plane nodes.

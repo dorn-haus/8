@@ -4,5 +4,4 @@ k.fluxcd.helm-release ./. {
     chart = "./deploy/chart/${builtins.baseNameOf (builtins.dirOf ./.)}";
     sourceRef.kind = "GitRepository";
   };
-  v = true;
 }

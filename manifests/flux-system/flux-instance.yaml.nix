@@ -13,7 +13,7 @@ in {
   };
   spec = {
     distribution = {
-      version = v.${name};
+      version = v.${name}.github-releases;
       registry = "ghcr.io/fluxcd";
       artifact = "oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests";
     };

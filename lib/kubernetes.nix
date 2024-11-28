@@ -3,12 +3,12 @@
   self,
   ...
 }: let
-  inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (builtins) attrValues baseNameOf dirOf elem elemAt filter mapAttrs readDir replaceStrings;
   inherit (lib) optionals;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
-  inherit (lib.lists) flatten subtractLists;
-  inherit (lib.strings) hasSuffix removeSuffix;
-  inherit (self.lib.cluster) versions;
+  inherit (lib.lists) flatten subtractLists unique;
+  inherit (lib.strings) hasPrefix hasSuffix removeSuffix;
+  inherit (self.lib.cluster) versions-data;
 
   flux.namespace = "flux-system";
   parentDirName = dir: baseNameOf (dirOf dir);
@@ -71,7 +71,15 @@ in {
     ];
   };
 
-  fluxcd = {
+  fluxcd = let
+    repository-name = url: let
+      noprefix = replaceStrings ["https://" "oci://"] ["" ""] url;
+      cleanup = replaceStrings ["/" "." "_"] ["-" "-" "-"] noprefix;
+    in
+      replaceStrings ["--"] ["-"] cleanup;
+  in {
+    inherit repository-name;
+
     kustomization = dir: overrides: let
       name = baseNameOf dir;
       namespace = parentDirName dir;
@@ -113,14 +121,52 @@ in {
       then [app config]
       else app;
 
-    helm-release = dir: overrides @ {v ? false, ...}: let
+    git-repository = params:
+      attrValues (mapAttrs (name: spec: let
+          url = elemAt versions-data.${name}.github-releases 0;
+        in {
+          kind = "GitRepository";
+          apiVersion = "source.toolkit.fluxcd.io/v1";
+          metadata = {
+            inherit (flux) namespace;
+            name = repository-name url;
+          };
+          spec = {
+            inherit url;
+            interval = "1h";
+            ref.tag = self.lib.cluster.versions.${name}.github-releases;
+          };
+        })
+        params);
+
+    helm-repository = let
+      filtered = filterAttrs (dep: datasources: (datasources.helm or null) != null) versions-data;
+      repoURLs = map (datasource: elemAt datasource.helm 0) (flatten (attrValues filtered));
+      repo = url: {
+        kind = "HelmRepository";
+        apiVersion = "source.toolkit.fluxcd.io/v1";
+        metadata = {
+          name = repository-name url;
+          inherit (flux) namespace;
+        };
+        spec =
+          {
+            inherit url;
+            interval = "2h";
+          }
+          // (
+            if hasPrefix "oci://" url
+            then {type = "oci";}
+            else {}
+          );
+      };
+    in
+      map repo (unique repoURLs);
+
+    helm-release = dir: overrides: let
       name = parentDirName dir;
       crds = "CreateReplace";
       pchart = overrides.chart or name;
-      pv =
-        if v
-        then "v"
-        else "";
     in
       recursiveUpdate {
         kind = "HelmRelease";
@@ -130,10 +176,17 @@ in {
           interval = "30m";
           chart.spec = {
             chart = pchart;
-            version = "${pv}${versions.${pchart}}";
+            version = let
+              v = self.lib.cluster.versions.${pchart};
+            in
+              v.helm or v.github-releases;
             sourceRef = {
-              inherit name; # todo!
               inherit (flux) namespace;
+              name = let
+                data = versions-data.${name};
+                url = elemAt (data.helm or data.github-releases) 0;
+              in
+                repository-name url;
               kind = "HelmRepository";
             };
             interval = "12h";

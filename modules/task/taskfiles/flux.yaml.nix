@@ -78,7 +78,7 @@ in {
     install-operator = let
       name = "flux-operator";
       namespace = "flux-system";
-      version = self.lib.cluster.versions.${name};
+      version = self.lib.cluster.versions.${name}.helm;
     in {
       desc = "Install the ${name}";
       status = [
