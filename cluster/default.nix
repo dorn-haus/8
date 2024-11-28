@@ -2,7 +2,7 @@
   self,
   lib,
 }: let
-  inherit (builtins) elemAt filter mapAttrs listToAttrs;
+  inherit (builtins) elemAt filter length mapAttrs listToAttrs;
   inherit (lib.lists) unique;
 in {
   name = "locker";
@@ -30,5 +30,16 @@ in {
     };
   };
 
-  versions = mapAttrs (datasource: projects: mapAttrs (project: value: elemAt value 1) projects) (import ./versions.nix);
+  versions = mapAttrs (project: datasources:
+    mapAttrs (
+      datasource: row: let
+        v = elemAt row 1;
+        transform = (length row) > 2;
+      in
+        if transform
+        then (elemAt row 2) v
+        else v
+    )
+    datasources)
+  (import ./versions.nix);
 }

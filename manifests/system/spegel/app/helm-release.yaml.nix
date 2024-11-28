@@ -1,1 +1,1 @@
-{k, ...}: k.fluxcd.helm-release ./. {v = true;}
+{k, ...}: k.fluxcd.helm-release ./. {}

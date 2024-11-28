@@ -8,7 +8,7 @@
 in
   k.external-secret ./. {
     data."values.yaml" = yaml.format {
-      image.tag = "v${v.github-releases.inadyn}";
+      image.tag = v.inadyn.github-releases;
       inadynConfig = ''
         period = 480
 

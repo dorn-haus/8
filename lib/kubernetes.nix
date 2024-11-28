@@ -112,14 +112,10 @@ in {
       then [app config]
       else app;
 
-    helm-release = dir: overrides @ {v ? false, ...}: let
+    helm-release = dir: overrides: let
       name = parentDirName dir;
       crds = "CreateReplace";
       pchart = overrides.chart or name;
-      pv =
-        if v
-        then "v"
-        else "";
     in
       recursiveUpdate {
         kind = "HelmRelease";
@@ -129,10 +125,10 @@ in {
           interval = "30m";
           chart.spec = {
             chart = pchart;
-            version = "${pv}${
-              self.lib.cluster.versions.helm.${pchart}
-              or self.lib.cluster.versions.github-releases.${pchart}
-            }";
+            version = let
+              v = self.lib.cluster.versions.${pchart};
+            in
+              v.helm or v.github-releases;
             sourceRef = {
               inherit name; # todo!
               inherit (flux) namespace;

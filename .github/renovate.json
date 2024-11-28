@@ -10,7 +10,7 @@
       "description": "Cluster dependencies",
       "fileMatch": "cluster/versions\\.nix$",
       "matchStrings": [
-        "(?<datasource>[^\\.]+)\\.(?<depName>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];"
+        "(?<datasource>[^\\.]+)\\.(?<depName>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\""
       ],
       "datasourceTemplate": "{{#if (equals (lookup (split registryUrl '://') 0) 'oci')}}docker{{else}}{{{datasource}}}{{/if}}",
       "extractVersionTemplate": "^v?(?<version>.*)$",
