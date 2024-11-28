@@ -4,7 +4,7 @@
 }: let
   inherit (builtins) elemAt filter length mapAttrs listToAttrs;
   inherit (lib.lists) unique;
-in {
+in rec {
   name = "locker";
   domain = "dorn.haus";
 
@@ -41,5 +41,6 @@ in {
         else v
     )
     datasources)
-  (import ./versions.nix);
+  versions-data;
+  versions-data = import ./versions.nix;
 }

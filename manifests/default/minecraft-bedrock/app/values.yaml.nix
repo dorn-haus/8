@@ -10,7 +10,7 @@ in {
     serverName = "Diesbach 2022";
 
     levelSeed = seed;
-    levelName = "S${seed}";
+    levelName = "seed_${seed}";
     difficulty = "hard";
 
     defaultPermission = "visitor";

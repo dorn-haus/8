@@ -3,11 +3,11 @@
   self,
   ...
 }: let
-  inherit (builtins) attrValues baseNameOf dirOf elem filter mapAttrs readDir;
+  inherit (builtins) attrValues baseNameOf dirOf elem elemAt filter mapAttrs readDir replaceStrings;
   inherit (lib) optionals;
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
-  inherit (lib.lists) flatten subtractLists;
-  inherit (lib.strings) hasSuffix removeSuffix;
+  inherit (lib.lists) flatten subtractLists unique;
+  inherit (lib.strings) hasPrefix hasSuffix removeSuffix;
 
   flux.namespace = "flux-system";
   parentDirName = dir: baseNameOf (dirOf dir);
@@ -70,7 +70,15 @@ in {
     ];
   };
 
-  fluxcd = {
+  fluxcd = let
+    helm-repository-name = url: let
+      noprefix = replaceStrings ["https://" "oci://"] ["" ""] url;
+      cleanup = replaceStrings ["/" "." "_"] ["-" "-" "-"] noprefix;
+    in
+      replaceStrings ["--"] ["-"] cleanup;
+  in {
+    inherit helm-repository-name;
+
     kustomization = dir: overrides: let
       name = baseNameOf dir;
       namespace = parentDirName dir;
@@ -112,6 +120,30 @@ in {
       then [app config]
       else app;
 
+    helm-repository = let
+      filtered = filterAttrs (dep: datasources: (datasources.helm or null) != null) self.lib.cluster.versions-data;
+      repoURLs = map (datasource: elemAt datasource.helm 0) (flatten (attrValues filtered));
+      repo = url: {
+        kind = "HelmRepository";
+        apiVersion = "source.toolkit.fluxcd.io/v1";
+        metadata = {
+          name = helm-repository-name url;
+          inherit (flux) namespace;
+        };
+        spec =
+          {
+            inherit url;
+            interval = "2h";
+          }
+          // (
+            if hasPrefix "oci://" url
+            then {type = "oci";}
+            else {}
+          );
+      };
+    in
+      map repo (unique repoURLs);
+
     helm-release = dir: overrides: let
       name = parentDirName dir;
       crds = "CreateReplace";
@@ -130,8 +162,12 @@ in {
             in
               v.helm or v.github-releases;
             sourceRef = {
-              inherit name; # todo!
               inherit (flux) namespace;
+              name = let
+                data = self.lib.cluster.versions-data.${name};
+                url = elemAt (data.helm or data.github-releases) 0;
+              in
+                helm-repository-name url;
               kind = "HelmRepository";
             };
             interval = "12h";
