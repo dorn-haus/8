@@ -2,7 +2,7 @@
   self,
   lib,
 }: let
-  inherit (builtins) attrValues elemAt filter head mapAttrs listToAttrs;
+  inherit (builtins) elemAt filter mapAttrs listToAttrs;
   inherit (lib.lists) unique;
 in {
   name = "locker";
@@ -30,5 +30,5 @@ in {
     };
   };
 
-  versions = mapAttrs (name: value: elemAt (head (attrValues value)) 1) (import ./versions.nix);
+  versions = mapAttrs (datasource: projects: mapAttrs (project: value: elemAt value 1) projects) (import ./versions.nix);
 }

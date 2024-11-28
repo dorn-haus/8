@@ -10,19 +10,11 @@
       "description": "Cluster dependencies",
       "fileMatch": "cluster/versions\\.nix$",
       "matchStrings": [
-        "(?<depName>\\S+) = \\{(?<datasource>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];\\};"
+        "(?<datasource>[^\\.]+)\\.(?<depName>\\S+) = \\[\"(?<registryUrl>.+?)\" \"(?<currentValue>.+?)\"\\];"
       ],
       "datasourceTemplate": "{{#if (equals (lookup (split registryUrl '://') 0) 'oci')}}docker{{else}}{{{datasource}}}{{/if}}",
       "extractVersionTemplate": "^v?(?<version>.*)$",
       "versioningTemplate": "helm"
-    }
-  ],
-  "hostRules": [
-    {
-      "matchHost": "ghcr.io",
-      "hostType": "docker",
-      "username": "attilaolah",
-      "token": "{{ secrets.GHCR_TOKEN }}"
     }
   ],
   "packageRules": [

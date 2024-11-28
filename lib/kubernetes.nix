@@ -8,7 +8,6 @@
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
   inherit (lib.lists) flatten subtractLists;
   inherit (lib.strings) hasSuffix removeSuffix;
-  inherit (self.lib.cluster) versions;
 
   flux.namespace = "flux-system";
   parentDirName = dir: baseNameOf (dirOf dir);
@@ -130,7 +129,10 @@ in {
           interval = "30m";
           chart.spec = {
             chart = pchart;
-            version = "${pv}${versions.${pchart}}";
+            version = "${pv}${
+              self.lib.cluster.versions.helm.${pchart}
+              or self.lib.cluster.versions.github-releases.${pchart}
+            }";
             sourceRef = {
               inherit name; # todo!
               inherit (flux) namespace;
