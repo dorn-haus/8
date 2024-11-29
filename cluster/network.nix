@@ -5,6 +5,10 @@ in {
     net4 = "10.8.0.0";
     net4Len = 8;
     cidr4 = cidr net4 net4Len;
+    # A more "strict" subnet, guaranteed to contain only node IPs.
+    # Nodes are still configured with L2 routing for the /8 range.
+    # This strict range is used only when validating whether an IP belongs to a node.
+    cidr4Strict = cidr net4 16;
 
     net6 = "fd10:8::";
     net6Len = 64;
