@@ -109,9 +109,11 @@ Much of this was inspired by a number of similar repos:
 
 - [Euvaz/GitOps-Home]
 - [toboshii/home-ops]
+- [onedr0p/home-ops]
 
 [Euvaz/GitOps-Home]: https://github.com/Euvaz/GitOps-Home
 [toboshii/home-ops]: https://github.com/toboshii/home-ops
+[onedr0p/home-ops]: https://github.com/onedr0p/home-ops
 
 ## 🚧 Under Construction
 
