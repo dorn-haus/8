@@ -81,7 +81,10 @@ in {
         proxy.disabled = true;
       };
       machine = {
-        kubelet.nodeIP.validSubnets = with cluster.network.node; [cidr4 cidr6];
+        kubelet = {
+          extraArgs.rotate-server-certificates = true;
+          nodeIP.validSubnets = with cluster.network.node; [cidr4 cidr6];
+        };
         network.nameservers = with cluster.network.uplink; dns4.two ++ dns6.two;
       };
     }
