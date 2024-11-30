@@ -8,11 +8,13 @@
   inherit (lib.attrsets) filterAttrs recursiveUpdate;
   inherit (lib.lists) flatten subtractLists unique;
   inherit (lib.strings) hasPrefix hasSuffix removeSuffix;
-  inherit (self.lib.cluster) versions-data;
+  inherit (self.lib) cluster;
 
   flux.namespace = "flux-system";
   parentDirName = dir: baseNameOf (dirOf dir);
 in {
+  hostname = dir: "${(parentDirName dir)}.${cluster.domain}";
+
   namespace = dir: overrides:
     recursiveUpdate {
       kind = "Namespace";
@@ -123,7 +125,7 @@ in {
 
     git-repository = params:
       attrValues (mapAttrs (name: spec: let
-          url = elemAt versions-data.${name}.github-releases 0;
+          url = elemAt cluster.versions-data.${name}.github-releases 0;
         in {
           kind = "GitRepository";
           apiVersion = "source.toolkit.fluxcd.io/v1";
@@ -134,13 +136,13 @@ in {
           spec = {
             inherit url;
             interval = "1h";
-            ref.tag = self.lib.cluster.versions.${name}.github-releases;
+            ref.tag = cluster.versions.${name}.github-releases;
           };
         })
         params);
 
     helm-repository = let
-      filtered = filterAttrs (dep: datasources: (datasources.helm or null) != null) versions-data;
+      filtered = filterAttrs (dep: datasources: (datasources.helm or null) != null) cluster.versions-data;
       repoURLs = map (datasource: elemAt datasource.helm 0) (flatten (attrValues filtered));
       repo = url: {
         kind = "HelmRepository";
@@ -177,13 +179,13 @@ in {
           chart.spec = {
             chart = pchart;
             version = let
-              v = self.lib.cluster.versions.${pchart};
+              v = cluster.versions.${pchart};
             in
               v.helm or v.github-releases;
             sourceRef = {
               inherit (flux) namespace;
               name = let
-                data = versions-data.${name};
+                data = cluster.versions-data.${name};
                 url = elemAt (data.helm or data.github-releases) 0;
               in
                 repository-name url;
