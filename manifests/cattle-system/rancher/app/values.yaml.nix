@@ -1,10 +1,20 @@
-{k, ...}: {
+inputs @ {k, ...}: let
+  issuer = import ../../../cert-manager/cert-manager/config/cluster-issuer.yaml.nix inputs;
+  certificate = import ../../../ingress-nginx/ingress-nginx/config/certificate.yaml.nix inputs;
+in {
   hostname = k.hostname ./.;
 
-  # TODO: Figure out whether to expose this externally or not.
-  # Definitely not until proper authentication is added, i.e. keycloak.
-  ingress.enabled = false; # todo
+  replicas = 2;
+  restrictedAdmin = true;
 
-  # TODO: Use the prod env, or just use our own certificates.
-  letsEncrypt.environment = "staging";
+  ingress = {
+    extraAnnotations."cert-manager.io/cluster-issuer" = issuer.metadata.name;
+    # Rancher includes a cert-manager.io/issuer annotation by default.
+    # We need to disable it so that we could use the cluster-issuer instead.
+    includeDefaultExtraAnnotations = false;
+    tls = {
+      source = "secret";
+      inherit (certificate.spec) secretName;
+    };
+  };
 }
