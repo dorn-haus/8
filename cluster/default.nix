@@ -7,6 +7,7 @@
 in rec {
   name = "locker";
   domain = "dorn.haus";
+  email = "${name}@${domain}";
 
   github = {
     owner = "attilaolah";
