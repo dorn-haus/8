@@ -21,9 +21,7 @@ let
   };
 in {
   recommender = component;
-
   updater = component;
-
   admissionController =
     component
     // {

@@ -10,6 +10,7 @@ in {
   external-secrets.helm = ["https://charts.external-secrets.io" "0.11.0"];
   flux-operator.helm = ["oci://ghcr.io/controlplaneio-fluxcd/charts" "0.10.0"];
   flux.github-releases = ["https://github.com/fluxcd/flux2" "2.4.0"];
+  goldilocks.helm = ["https://charts.fairwinds.com/stable" "9.0.1"];
   grafana.helm = ["https://grafana.github.io/helm-charts" "8.6.4"];
   inadyn.github-releases = ["https://github.com/troglobit/inadyn" "2.12.0" vp];
   inadyn.helm = ["https://charts.philippwaller.com" "1.1.0"];
