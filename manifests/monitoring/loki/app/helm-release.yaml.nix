@@ -1,4 +1,1 @@
-{k, ...}:
-k.fluxcd.helm-release ./. {
-  spec.chart.spec.sourceRef.name = "grafana";
-}
+{k, ...}: k.fluxcd.helm-release ./. {}
