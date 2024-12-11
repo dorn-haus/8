@@ -12,7 +12,20 @@ in {
     enabled = true;
 
     ingressClassName = "nginx";
-    annotations."cert-manager.io/cluster-issuer" = issuer.metadata.name;
+    annotations = {
+      # TLS
+      "cert-manager.io/cluster-issuer" = issuer.metadata.name;
+      # Homepage
+      "gethomepage.dev/enabled" = "true";
+      "gethomepage.dev/name" = "Grafana";
+      "gethomepage.dev/description" = "Observability platform";
+      "gethomepage.dev/group" = "Cluster Management";
+      "gethomepage.dev/icon" = "grafana.png";
+      # TODO: Homepage widget type
+      # "gethomepage.dev/widget.type" = "grafana";
+      # "gethomepage.dev/widget.username" = "homepage";
+      # "gethomepage.dev/widget.password" = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}";
+    };
     tls = [
       {
         inherit hosts;
