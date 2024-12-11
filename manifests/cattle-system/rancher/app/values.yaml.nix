@@ -8,7 +8,17 @@ in {
   restrictedAdmin = true;
 
   ingress = {
-    extraAnnotations."cert-manager.io/cluster-issuer" = issuer.metadata.name;
+    extraAnnotations = {
+      # TLS
+      "cert-manager.io/cluster-issuer" = issuer.metadata.name;
+      # Homepage
+      "gethomepage.dev/enabled" = "true";
+      "gethomepage.dev/name" = "Rancher";
+      "gethomepage.dev/description" = "Cluster management interface";
+      "gethomepage.dev/group" = "Cluster Management";
+      "gethomepage.dev/icon" = "rancher.png";
+      "gethomepage.dev/pod-selector" = "app=rancher";
+    };
     # Rancher includes a cert-manager.io/issuer annotation by default.
     # We need to disable it so that we could use the cluster-issuer instead.
     includeDefaultExtraAnnotations = false;
