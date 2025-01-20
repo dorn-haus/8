@@ -4,7 +4,7 @@ in {
   # Format:
   # dep.datasource = [repository version transform]
   # If transform is not provided, the default is used: (v: v).
-  cert-manager.helm = ["https://charts.jetstack.io" "1.16.2"];
+  cert-manager.helm = ["https://charts.jetstack.io" "1.16.3"];
   cilium.helm = ["https://helm.cilium.io" "1.16.5"];
   descheduler.helm = ["https://kubernetes-sigs.github.io/descheduler" "0.32.1"];
   external-secrets.helm = ["https://charts.external-secrets.io" "0.12.1"];
