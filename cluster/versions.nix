@@ -18,7 +18,7 @@ in {
   inadyn.helm = ["https://charts.philippwaller.com" "1.1.0"];
   ingress-nginx.helm = ["https://kubernetes.github.io/ingress-nginx" "4.12.0"];
   kubelet-csr-approver.helm = ["https://postfinance.github.io/kubelet-csr-approver" "1.2.5"];
-  kubernetes.github-releases = ["https://github.com/kubernetes/kubernetes" "1.31.2" vp];
+  kubernetes.github-releases = ["https://github.com/kubernetes/kubernetes" "1.32.1" vp];
   local-path-provisioner.github-releases = ["https://github.com/rancher/local-path-provisioner" "0.0.30" vp];
   loki.helm = ["https://grafana.github.io/helm-charts" "6.25.0"];
   metrics-server.helm = ["https://kubernetes-sigs.github.io/metrics-server" "3.12.2"];
