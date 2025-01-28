@@ -36,10 +36,10 @@
       (optional node.zfs "siderolabs/zfs")
     ];
 
-    extraManifests = map (src: yaml.write src {inherit pkgs;}) [
+    extraManifests = map (src: yaml.write src {inherit pkgs;}) (flatten [
+      (optional node.watchdog ./manifests/watchdog.yaml.nix)
       ./manifests/vector.yaml.nix
-      ./manifests/watchdog.yaml.nix
-    ];
+    ]);
 
     patches = map yaml.format [
       {

@@ -27,6 +27,7 @@ map (src: let
 
     # Defaults:
     zfs = false;
+    watchdog = true;
   };
 in
   extras // data) (lib.fileset.toList dir)
